@@ -39,17 +39,18 @@ private val REQUIRED_PERMISSIONS = arrayOf(
 
 class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListener2 {
 
-    private val context: Context = getApplicationContext()
     lateinit var imageMat: Mat
     private lateinit var mainBinding : ActivityMainBinding
     private lateinit var viewModel: CameraModel
     private val viewFinder by lazy { findViewById<JavaCameraView>(R.id.cameraView)}
-    private lateinit var photoFrame: Mat
+    public lateinit var photoFrame: Mat
     private var coder = Deflater()
     private var decoder = Inflater()
     public var preview = false
     private lateinit var curFrame:Mat
-    private lateinit var photoMat:Mat
+    lateinit var photoMat:Mat
+    private var buffSize:Int = 0
+    private var origSize:Int = 0
     private fun checkOpenCV(context: Context) {
         if (OpenCVLoader.initDebug()) {
             shortMsg(context, OPENCV_SUCCESSFUL)
@@ -144,7 +145,7 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
             cvtColor(imageMat, imageMat, Imgproc.COLOR_RGB2GRAY);
             adaptiveThreshold(imageMat, imageMat, 255.0, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 15,
                 40.0);
-            curFrame = imageMat
+            curFrame = imageMat.clone()
             return imageMat
         }
         else{
@@ -152,62 +153,48 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
         }
 
     }
-    fun packPhoto():Mat{
+    fun packPhoto(){
         val return_buff = ByteArray(
             (curFrame.total().toInt())
         )
         curFrame.get(0, 0, return_buff)
 
-        //Encrypting data
-
-        coder = Deflater()
-        val output = ByteArray(return_buff.size)
-        coder.setInput(return_buff)
-        coder.finish()
-        val compressedDataLength = coder.deflate(output)
-        coder.end()
-
-        decoder = Inflater()
-        decoder.setInput(output, 0, compressedDataLength)
-        val result = ByteArray(return_buff.size)
-        val resultLength = decoder.inflate(result)
-        decoder.end()
-
-        var res = Mat(curFrame.size(),CvType.CV_8UC1)
-        res.put(0,0, result)
-        photoMat = res
-        preview = true
-
-
-        return res
+        storagePhoto(return_buff)
     }
     fun storagePhoto(data:ByteArray){
-        val dir = File(context.filesDir, "data")
-        if(!dir.exists()){
-            dir.mkdir();
-        }
+        origSize = data.size
+        coder = Deflater()
+        val output = ByteArray(data.size)
+        coder.setInput(data)
+        coder.finish()
+        buffSize = coder.deflate(output)
+        coder.end()
         try {
-            val dataFile = File(dir, "output.dat")
-            val dataWriter = FileOutputStream(dataFile)
-            dataWriter.write(data)
+            val dataWriter = openFileOutput("output.dat",Context.MODE_PRIVATE)
+            dataWriter.write(output)
             dataWriter.close()
-            var res = ByteArray(dataFile.length().toInt())
-            val dataReader = FileInputStream(dataFile);
-            dataReader.read(res)
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
-    fun unpackPhoto():ByteArray{
-        val dir = File(context.filesDir, "data")
+    fun unpackPhoto(){
         try {
-            val dataFile = File(dir, "output.dat")
-            var res = ByteArray(dataFile.length().toInt())
-            val dataReader = FileInputStream(dataFile);
-            dataReader.read(res)
+            var data = ByteArray(buffSize)
+            val dataReader = openFileInput("output.dat")
+            dataReader.read(data)
+
+            decoder = Inflater()
+            decoder.setInput(data, 0, buffSize)
+            val result = ByteArray(origSize)
+            val resultLength = decoder.inflate(result)
+            decoder.end()
+
+            var res = Mat(curFrame.size(),CvType.CV_8UC1)
+            res.put(0,0, result)
+            photoMat = res
+
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        return res
     }
 }

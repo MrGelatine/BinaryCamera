@@ -78,5 +78,16 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/main_button" />
 
+        <Button
+            android:id="@+id/button_preview"
+            android:background="@drawable/rounded_button"
+            android:layout_width="60dp"
+            android:layout_height="20dp"
+            android:onClick="@{(v) -> camera.Preview()}"
+            android:text="Preview"
+            android:textAlignment="center"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
