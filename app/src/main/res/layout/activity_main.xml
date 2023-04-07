@@ -18,7 +18,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
     <data>
-        <variable name="camera" type="com.example.binarycamera.CameraModel"/>
+        <variable
+            name="camera"
+            type="com.example.binarycamera.CameraModel"/>
     </data>
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/camera_container"
@@ -30,17 +32,19 @@
             android:id="@+id/cameraView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:show_fps="true"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="1.0"
+            app:show_fps="true" />
 
         <Button
             android:id="@+id/main_button"
             android:background="@drawable/photo_button"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
             android:layout_marginBottom="52dp"
             app:layout_constraintBottom_toBottomOf="@+id/cameraView"
             app:layout_constraintEnd_toEndOf="parent"
@@ -51,8 +55,8 @@
 
         <Button
             android:id="@+id/button_decline"
-            android:layout_width="60dp"
-            android:layout_height="20dp"
+            android:layout_width="90dp"
+            android:layout_height="30dp"
             android:layout_marginBottom="56dp"
             android:background="@drawable/rounded_button"
             android:onClick="@{(v) -> camera.Decline()}"
@@ -66,8 +70,8 @@
         <Button
             android:id="@+id/button_accept"
             android:background="@drawable/rounded_button"
-            android:layout_width="60dp"
-            android:layout_height="20dp"
+            android:layout_width="90dp"
+            android:layout_height="30dp"
             android:layout_marginStart="40dp"
             android:layout_marginBottom="56dp"
             android:onClick="@{(v) -> camera.Accept()}"
@@ -79,15 +83,25 @@
             app:layout_constraintStart_toEndOf="@+id/main_button" />
 
         <Button
-            android:id="@+id/button_preview"
-            android:background="@drawable/rounded_button"
+            android:id="@+id/previewButton"
             android:layout_width="60dp"
-            android:layout_height="20dp"
-            android:onClick="@{(v) -> camera.Preview()}"
+            android:layout_height="69dp"
+            android:background="@drawable/rounded_button"
+            android:onClick="@{(v) -> camera.showPreview()}"
             android:text="Preview"
-            android:textAlignment="center"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/resultSizeText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{camera.fileSize}"
+            android:visibility="@{camera.fileSizeVisibility}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            android:textColor="@color/textRed"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

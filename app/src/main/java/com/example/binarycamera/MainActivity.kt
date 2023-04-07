@@ -43,14 +43,14 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
     private lateinit var mainBinding : ActivityMainBinding
     private lateinit var viewModel: CameraModel
     private val viewFinder by lazy { findViewById<JavaCameraView>(R.id.cameraView)}
-    public lateinit var photoFrame: Mat
     private var coder = Deflater()
     private var decoder = Inflater()
-    public var preview = false
+    var preview = false
     private lateinit var curFrame:Mat
-    lateinit var photoMat:Mat
-    private var buffSize:Int = 0
-    private var origSize:Int = 0
+    //Preview Content
+    private lateinit var photoMat:Mat
+    var buffSize:Int = 0
+    var compreseBuffSize:Int = 0
     private fun checkOpenCV(context: Context) {
         if (OpenCVLoader.initDebug()) {
             shortMsg(context, OPENCV_SUCCESSFUL)
@@ -154,24 +154,28 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
 
     }
     fun packPhoto(){
+        //Transform frame to bytes array
         val return_buff = ByteArray(
             (curFrame.total().toInt())
         )
         curFrame.get(0, 0, return_buff)
-
+        buffSize = return_buff.size
+        //Store bytes array to file
         storagePhoto(return_buff)
     }
+
     fun storagePhoto(data:ByteArray){
-        origSize = data.size
+        //Data encrypting
         coder = Deflater()
-        val output = ByteArray(data.size)
+        val codedBuff = ByteArray(buffSize)
         coder.setInput(data)
         coder.finish()
-        buffSize = coder.deflate(output)
+        compreseBuffSize = coder.deflate(codedBuff)
         coder.end()
+        //Load data to file
         try {
-            val dataWriter = openFileOutput("output.dat",Context.MODE_PRIVATE)
-            dataWriter.write(output)
+            val dataWriter = openFileOutput("output.dat", MODE_PRIVATE);
+            dataWriter.write(codedBuff)
             dataWriter.close()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -179,22 +183,24 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
     }
     fun unpackPhoto(){
         try {
-            var data = ByteArray(buffSize)
+            //Load bytes from fil
+            var res = ByteArray(compreseBuffSize)
             val dataReader = openFileInput("output.dat")
-            dataReader.read(data)
+            dataReader.read(res)
 
+            //Unpack bytes
             decoder = Inflater()
-            decoder.setInput(data, 0, buffSize)
-            val result = ByteArray(origSize)
-            val resultLength = decoder.inflate(result)
+            decoder.setInput(res, 0, compreseBuffSize)
+            val result = ByteArray(buffSize)
+            decoder.inflate(result)
             decoder.end()
 
-            var res = Mat(curFrame.size(),CvType.CV_8UC1)
-            res.put(0,0, result)
-            photoMat = res
-
+            var prevMat = Mat(curFrame.size(),CvType.CV_8UC1)
+            prevMat.put(0,0, result)
+            photoMat = prevMat
         } catch (e: Exception) {
             e.printStackTrace()
         }
+
     }
 }
