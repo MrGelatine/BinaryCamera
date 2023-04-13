@@ -1,50 +1,72 @@
 package com.example.binarycamera
 
+import android.graphics.Rect
+import android.hardware.Camera
+import android.hardware.Camera.AutoFocusCallback
+import android.util.Log
+import android.view.MotionEvent
 import android.view.View
-import androidx.databinding.*
+import androidx.databinding.BaseObservable
+import androidx.databinding.ObservableField
+import androidx.lifecycle.Observer
+import com.example.binarycamera.MainActivity.Companion.TAG
 import java.math.RoundingMode
 
 
-class CameraModel(val camera:MainActivity): BaseObservable() {
+class CameraModel(val cameraActivity:MainActivity): BaseObservable() {
+    private val FOCUS_AREA_SIZE = 100
     var photoVisibility = ObservableField(View.VISIBLE)
     var declineAcceptVisibility = ObservableField(View.GONE)
     var fileSizeVisibility = ObservableField(View.GONE)
     var fileSize= ObservableField<String>()
 
-    fun makePhoto(){
-        camera.preview = true
-        camera.onPause()
-        photoVisibility.set(View.GONE)
-        declineAcceptVisibility.set(View.VISIBLE)
+
+    fun makePhoto() {
+        cameraActivity.focus.value = true
     }
 
     fun Decline(){
-        camera.onResume()
+        cameraActivity.onResume()
         photoVisibility.set(View.VISIBLE)
         declineAcceptVisibility.set(View.GONE)
-        camera.preview = false
+        cameraActivity.preview = false
     }
 
     fun Accept(){
-        camera.packPhoto()
-        camera.onResume()
+        cameraActivity.packPhoto()
+        cameraActivity.onResume()
         photoVisibility.set(View.VISIBLE)
         declineAcceptVisibility.set(View.GONE)
-        camera.preview = false
-
+        cameraActivity.preview = false
     }
     fun showPreview() {
-        if (!camera.preview) {
+        if (!cameraActivity.preview) {
             fileSizeVisibility.set(View.VISIBLE)
-            fileSize.set("${(camera.buffSize / 8000.0).toBigDecimal().setScale(2, RoundingMode.UP)}КB -> ${(camera.compreseBuffSize / 8000.0).toBigDecimal().setScale(2, RoundingMode.UP)}КB")
-            camera.unpackPhoto()
+            fileSize.set("${(cameraActivity.buffSize / 8000.0).toBigDecimal().setScale(2, RoundingMode.UP)}КB -> ${(cameraActivity.compreseBuffSize / 8000.0).toBigDecimal().setScale(2, RoundingMode.UP)}КB")
+            cameraActivity.unpackPhoto()
             photoVisibility.set(View.GONE)
-            camera.preview = true
+            cameraActivity.preview = true
         } else {
             fileSizeVisibility.set(View.GONE)
             photoVisibility.set(View.VISIBLE)
             declineAcceptVisibility.set(View.GONE)
-            camera.preview = false
+            cameraActivity.preview = false
         }
+    }
+
+
+    private fun calculateFocusArea(x: Float, y: Float): Rect? {
+        val left = (x * (2000.0/cameraActivity.cWidth)).toInt() - 1000
+        val top = (y * (2000.0/cameraActivity.cHeight)).toInt() - 1000
+        return Rect(left, top, clamp(left + FOCUS_AREA_SIZE,-1000, 1000), clamp(top + FOCUS_AREA_SIZE,-1000, 1000))
+    }
+
+    private fun clamp(x: Int, min: Int, max: Int): Int {
+        if (x > max) {
+            return max
+        }
+        return if (x < min) {
+            min
+        } else x
     }
 }

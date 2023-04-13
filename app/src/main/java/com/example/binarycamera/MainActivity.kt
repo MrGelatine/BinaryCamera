@@ -3,16 +3,21 @@ package com.example.binarycamera
 import android.Manifest.permission.*
 import android.content.Context
 import android.content.pm.PackageManager
+import android.hardware.Camera
+import android.hardware.Camera.AutoFocusMoveCallback
 import android.hardware.camera2.CameraCharacteristics
 import android.os.Bundle
 import android.util.Log
 import android.view.SurfaceView
+import android.view.View
 import android.view.WindowManager.LayoutParams.*
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import com.example.binarycamera.databinding.ActivityMainBinding
 import org.opencv.android.CameraBridgeViewBase
 import org.opencv.android.JavaCameraView
@@ -21,12 +26,6 @@ import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.imgproc.Imgproc
 import org.opencv.imgproc.Imgproc.*
-import java.io.DataInputStream
-import java.io.DataOutputStream
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.FileWriter
 import java.util.zip.Deflater
 import java.util.zip.Inflater
 
@@ -38,6 +37,7 @@ private val REQUIRED_PERMISSIONS = arrayOf(
     READ_EXTERNAL_STORAGE)
 
 class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListener2 {
+    var focus: MutableLiveData<Boolean> = MutableLiveData()
 
     lateinit var imageMat: Mat
     private lateinit var mainBinding : ActivityMainBinding
@@ -51,6 +51,9 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
     private lateinit var photoMat:Mat
     var buffSize:Int = 0
     var compreseBuffSize:Int = 0
+    var cWidth = -1
+    var cHeight = -1
+    lateinit var mCamera: Camera
     private fun checkOpenCV(context: Context) {
         if (OpenCVLoader.initDebug()) {
             shortMsg(context, OPENCV_SUCCESSFUL)
@@ -59,10 +62,35 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
             lge(OPENCV_PROBLEM)
         }
     }
-    companion object {
+    private val mAutoFocusTakePictureCallback =
+        Camera.AutoFocusCallback { success, camera ->
+            if (success) {
+                focus.value = false
+                Log.i("tap_to_focus", "success!")
+                camera.cancelAutoFocus()
+                onPause()
+                viewModel.photoVisibility.set(View.GONE)
+                viewModel.declineAcceptVisibility.set(View.VISIBLE)
+                lgd("Focus!")
+            }else{
+                camera.cancelAutoFocus()
+                camera.setAutoFocusMoveCallback(AutoFocusMoveCallback { start, camera ->
+                    if(!start){
+                        focus.value = false
+                        Log.i("tap_to_focus", "success!")
+                        camera.cancelAutoFocus()
+                        onPause()
+                        viewModel.photoVisibility.set(View.GONE)
+                        viewModel.declineAcceptVisibility.set(View.VISIBLE)
+                        lgd("Focus!")
+                    }
 
+                })
+            }
+        }
+    companion object {
         val TAG = "MYLOG " + MainActivity::class.java.simpleName
-        fun lgd(s: String) = Log.d(TAG, s)
+        public fun lgd(s: String) = Log.d(TAG, s)
         fun lge(s: String) = Log.e(TAG, s)
         fun lgi(s: String) = Log.i(TAG, s)
 
@@ -130,9 +158,20 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
     public override fun onResume() {
         super.onResume()
         viewFinder?.let { viewFinder.enableView() }
+
     }
     override fun onCameraViewStarted(width: Int, height: Int) {
         imageMat = Mat(width, height, CvType.CV_8UC4)
+        mCamera = viewFinder.mCamera
+        mCamera.parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO)
+        cWidth = mainBinding.cameraView.width
+        cHeight = mainBinding.cameraView.height
+        val nameObserver = Observer<Boolean> { f ->
+            if(focus.value!!) {
+                mCamera.autoFocus(mAutoFocusTakePictureCallback)
+            }
+        }
+        focus.observe(this,nameObserver)
     }
 
     override fun onCameraViewStopped() {
@@ -151,7 +190,6 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
         else{
             return photoMat
         }
-
     }
     fun packPhoto(){
         //Transform frame to bytes array
