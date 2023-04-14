@@ -246,7 +246,7 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
         //Load data to file
         try {
             val dataWriter = FileOutputStream(File(getExternalFilesDir("BinaryStorage"), "output.dat"))
-            val wrap =  DataOutputStream(dataWriter)A
+            val wrap =  DataOutputStream(dataWriter)
             wrap.writeInt(curFrame.size().width.toInt())
             wrap.writeInt(curFrame.size().height.toInt())
             wrap.writeInt(compreseBuffSize)
