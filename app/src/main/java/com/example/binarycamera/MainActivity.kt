@@ -1,17 +1,24 @@
 package com.example.binarycamera
 
-import android.Manifest.permission.*
+import android.Manifest.permission.CAMERA
+import android.Manifest.permission.READ_EXTERNAL_STORAGE
+import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.content.Context
 import android.content.pm.PackageManager
 import android.hardware.Camera
 import android.hardware.Camera.AutoFocusMoveCallback
 import android.hardware.camera2.CameraCharacteristics
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.view.SurfaceView
 import android.view.View
-import android.view.WindowManager.LayoutParams.*
+import android.view.WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN
+import android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN
+import android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -24,8 +31,18 @@ import org.opencv.android.JavaCameraView
 import org.opencv.android.OpenCVLoader
 import org.opencv.core.CvType
 import org.opencv.core.Mat
-import org.opencv.imgproc.Imgproc
-import org.opencv.imgproc.Imgproc.*
+import org.opencv.core.Size
+import org.opencv.imgproc.Imgproc.ADAPTIVE_THRESH_MEAN_C
+import org.opencv.imgproc.Imgproc.COLOR_RGB2GRAY
+import org.opencv.imgproc.Imgproc.THRESH_BINARY
+import org.opencv.imgproc.Imgproc.adaptiveThreshold
+import org.opencv.imgproc.Imgproc.cvtColor
+import java.io.DataInputStream
+import java.io.DataOutputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.nio.ByteBuffer
 import java.util.zip.Deflater
 import java.util.zip.Inflater
 
@@ -54,6 +71,19 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
     var cWidth = -1
     var cHeight = -1
     lateinit var mCamera: Camera
+    private fun isExternalStorageReadOnly(): Boolean {
+        val extStorageState = Environment.getExternalStorageState()
+        return if (Environment.MEDIA_MOUNTED_READ_ONLY == extStorageState) {
+            true
+        } else false
+    }
+    private fun isExternalStorageAvailable(): Boolean {
+        val extStorageState = Environment.getExternalStorageState()
+        return if (Environment.MEDIA_MOUNTED == extStorageState) {
+            true
+        } else false
+    }
+
     private fun checkOpenCV(context: Context) {
         if (OpenCVLoader.initDebug()) {
             shortMsg(context, OPENCV_SUCCESSFUL)
@@ -99,7 +129,6 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
 
         // messages:
         private const val OPENCV_SUCCESSFUL = "OpenCV Loaded Successfully!"
-        private const val OPENCV_FAIL = "Could not load OpenCV!!!"
         private const val OPENCV_PROBLEM = "There's a problem in OpenCV."
         private const val PERMISSION_NOT_GRANTED = "Permissions not granted by the user."
 
@@ -112,6 +141,9 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
 
         mainBinding.camera = viewModel
 
+        if (!isExternalStorageAvailable() || isExternalStorageReadOnly()) {
+            mainBinding.previewButton.setEnabled(false)
+        }
         window.clearFlags(FLAG_FORCE_NOT_FULLSCREEN)
         window.setFlags(FLAG_FULLSCREEN, FLAG_FULLSCREEN)
         window.addFlags(FLAG_KEEP_SCREEN_ON)
@@ -181,7 +213,7 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
     override fun onCameraFrame(inputFrame: CameraBridgeViewBase.CvCameraViewFrame?): Mat {
         if(!preview) {
             imageMat = inputFrame!!.rgba()
-            cvtColor(imageMat, imageMat, Imgproc.COLOR_RGB2GRAY);
+            cvtColor(imageMat, imageMat, COLOR_RGB2GRAY);
             adaptiveThreshold(imageMat, imageMat, 255.0, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 15,
                 40.0);
             curFrame = imageMat.clone()
@@ -203,6 +235,7 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
     }
 
     fun storagePhoto(data:ByteArray){
+
         //Data encrypting
         coder = Deflater()
         val codedBuff = ByteArray(buffSize)
@@ -212,33 +245,42 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
         coder.end()
         //Load data to file
         try {
-            val dataWriter = openFileOutput("output.dat", MODE_PRIVATE);
+            val dataWriter = FileOutputStream(File(getExternalFilesDir("BinaryStorage"), "output.dat"))
+            val wrap =  DataOutputStream(dataWriter)A
+            wrap.writeInt(curFrame.size().width.toInt())
+            wrap.writeInt(curFrame.size().height.toInt())
+            wrap.writeInt(compreseBuffSize)
+            wrap.writeInt(buffSize)
             dataWriter.write(codedBuff)
             dataWriter.close()
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
+
     fun unpackPhoto(){
-        try {
-            //Load bytes from fil
-            var res = ByteArray(compreseBuffSize)
-            val dataReader = openFileInput("output.dat")
+            //Load bytes from file
+        val dataReader = FileInputStream(File(getExternalFilesDir("BinaryStorage"), "output.dat"))
+        val scanner = DataInputStream(dataReader)
+        val height = scanner.readInt().toDouble()
+        val width = scanner.readInt().toDouble()
+        val prevSize = Size(height,width)
+        val dada = DataInputStream(dataReader)
+        val compBuffSize = dada.readInt()
+        val bSize = dada.readInt()
+            var res = ByteArray(compBuffSize)
             dataReader.read(res)
 
             //Unpack bytes
             decoder = Inflater()
-            decoder.setInput(res, 0, compreseBuffSize)
-            val result = ByteArray(buffSize)
+            decoder.setInput(res, 0, compBuffSize)
+            val result = ByteArray(bSize)
             decoder.inflate(result)
             decoder.end()
 
-            var prevMat = Mat(curFrame.size(),CvType.CV_8UC1)
+            var prevMat = Mat(prevSize,CvType.CV_8UC1)
             prevMat.put(0,0, result)
             photoMat = prevMat
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
 
     }
 }

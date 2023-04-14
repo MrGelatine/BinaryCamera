@@ -41,22 +41,21 @@
 
         <Button
             android:id="@+id/main_button"
-            android:background="@drawable/photo_button"
             android:layout_width="70dp"
             android:layout_height="70dp"
-            android:layout_marginBottom="52dp"
+            android:layout_marginBottom="50dp"
+            android:background="@drawable/photo_button"
+            android:onClick="@{() -> camera.makePhoto()}"
+            android:visibility="@{camera.photoVisibility}"
             app:layout_constraintBottom_toBottomOf="@+id/cameraView"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.498"
-            app:layout_constraintStart_toStartOf="parent"
-            android:onClick="@{() -> camera.makePhoto()}"
-            android:visibility = "@{camera.photoVisibility}"/>
+            app:layout_constraintStart_toStartOf="parent" />
 
         <Button
             android:id="@+id/button_decline"
             android:layout_width="90dp"
             android:layout_height="30dp"
-            android:layout_marginBottom="56dp"
+            android:layout_marginBottom="60dp"
             android:background="@drawable/rounded_button"
             android:onClick="@{(v) -> camera.Decline()}"
             android:text="X"
@@ -68,11 +67,10 @@
 
         <Button
             android:id="@+id/button_accept"
-            android:background="@drawable/rounded_button"
             android:layout_width="90dp"
             android:layout_height="30dp"
-            android:layout_marginStart="40dp"
-            android:layout_marginBottom="56dp"
+            android:layout_marginBottom="60dp"
+            android:background="@drawable/rounded_button"
             android:onClick="@{(v) -> camera.Accept()}"
             android:text="V"
             android:textAlignment="center"
