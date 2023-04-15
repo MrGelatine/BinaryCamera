@@ -25,6 +25,9 @@ import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
+import androidx.navigation.NavController
+import androidx.navigation.Navigation
+import androidx.navigation.fragment.NavHostFragment
 import com.example.binarycamera.databinding.ActivityMainBinding
 import org.opencv.android.CameraBridgeViewBase
 import org.opencv.android.JavaCameraView
@@ -47,17 +50,21 @@ import java.util.zip.Deflater
 import java.util.zip.Inflater
 
 
-private const val REQUEST_CODE_PERMISSIONS = 111
-private val REQUIRED_PERMISSIONS = arrayOf(
+const val REQUEST_CODE_PERMISSIONS = 111
+val REQUIRED_PERMISSIONS = arrayOf(
     CAMERA,
     WRITE_EXTERNAL_STORAGE,
     READ_EXTERNAL_STORAGE)
 
-class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListener2 {
+class MainActivity : AppCompatActivity(){
+    private lateinit var mainBinding : ActivityMainBinding
+    private lateinit var navGraph: NavController
+    /*
     var focus: MutableLiveData<Boolean> = MutableLiveData()
 
+
     lateinit var imageMat: Mat
-    private lateinit var mainBinding : ActivityMainBinding
+
     private lateinit var viewModel: CameraModel
     private val viewFinder by lazy { findViewById<JavaCameraView>(R.id.cameraView)}
     private var coder = Deflater()
@@ -128,40 +135,22 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
             Toast.makeText(context, s, Toast.LENGTH_SHORT).show()
 
         // messages:
-        private const val OPENCV_SUCCESSFUL = "OpenCV Loaded Successfully!"
-        private const val OPENCV_PROBLEM = "There's a problem in OpenCV."
-        private const val PERMISSION_NOT_GRANTED = "Permissions not granted by the user."
+        const val OPENCV_SUCCESSFUL = "OpenCV Loaded Successfully!"
+        const val OPENCV_PROBLEM = "There's a problem in OpenCV."
+        const val PERMISSION_NOT_GRANTED = "Permissions not granted by the user."
 
-    }
+    }*/
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
-        viewModel = CameraModel(this)
 
-        mainBinding.camera = viewModel
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
+        val navController = navHostFragment.navController
+        navGraph = Navigation.findNavController(this, R.id.fragmentContainerView)
 
-        if (!isExternalStorageAvailable() || isExternalStorageReadOnly()) {
-            mainBinding.previewButton.setEnabled(false)
-        }
-        window.clearFlags(FLAG_FORCE_NOT_FULLSCREEN)
-        window.setFlags(FLAG_FULLSCREEN, FLAG_FULLSCREEN)
-        window.addFlags(FLAG_KEEP_SCREEN_ON)
-        // Request camera permissions
-        if (allPermissionsGranted()) {
-            checkOpenCV(this)
-        } else {
-            ActivityCompat.requestPermissions(
-                this,
-                REQUIRED_PERMISSIONS,
-                REQUEST_CODE_PERMISSIONS
-            )
-        }
-        viewFinder.visibility = SurfaceView.VISIBLE
-        viewFinder.setCameraIndex(
-            CameraCharacteristics.LENS_FACING_FRONT)
-        viewFinder.setCvCameraViewListener(this)
     }
+    /*
     override fun onRequestPermissionsResult(
         requestCode: Int, permissions: Array<String>, grantResults: IntArray
     ) {
@@ -235,7 +224,6 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
     }
 
     fun storagePhoto(data:ByteArray){
-
         //Data encrypting
         coder = Deflater()
         val codedBuff = ByteArray(buffSize)
@@ -283,4 +271,5 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
             photoMat = prevMat
 
     }
+    */
 }
