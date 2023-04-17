@@ -5,29 +5,30 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.hardware.Camera
 import android.hardware.camera2.CameraCharacteristics
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.SurfaceView
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.app.ActivityCompat
-import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.MutableLiveData
-import androidx.navigation.NavController
-import com.example.binarycamera.databinding.FragmentCameraBinding
-import org.opencv.android.JavaCameraView
-import org.opencv.core.Mat
-import java.util.zip.Deflater
-import java.util.zip.Inflater
 import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
+import androidx.navigation.fragment.findNavController
+import com.example.binarycamera.databinding.FragmentCameraBinding
 import org.opencv.android.CameraBridgeViewBase
+import org.opencv.android.JavaCameraView
 import org.opencv.android.OpenCVLoader
 import org.opencv.core.CvType
+import org.opencv.core.Mat
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import java.io.DataInputStream
@@ -35,15 +36,19 @@ import java.io.DataOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.zip.Deflater
+import java.util.zip.Inflater
 
 
 class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
     var focus: MutableLiveData<Boolean> = MutableLiveData()
 
-    private lateinit var navGraph: NavController
     lateinit var imageMat: Mat
     private lateinit var cameraBinding : FragmentCameraBinding
-    private lateinit var viewModel: CameraModel
+    private lateinit var cameraInfo: CameraModel
     private lateinit var viewFinder:JavaCameraView
     private var coder = Deflater()
     private var decoder = Inflater()
@@ -55,6 +60,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
     var compreseBuffSize:Int = 0
     var cWidth = -1
     var cHeight = -1
+    var name = ""
     lateinit var mCamera: Camera
     private val mAutoFocusTakePictureCallback =
         Camera.AutoFocusCallback { success, camera ->
@@ -63,8 +69,8 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
                 Log.i("tap_to_focus", "success!")
                 camera.cancelAutoFocus()
                 onPause()
-                viewModel.photoVisibility.set(View.GONE)
-                viewModel.declineAcceptVisibility.set(View.VISIBLE)
+                cameraInfo.photoVisibility.set(View.GONE)
+                cameraInfo.declineAcceptVisibility.set(View.VISIBLE)
                 lgd("Focus!")
             }else{
                 camera.cancelAutoFocus()
@@ -74,8 +80,8 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
                         Log.i("tap_to_focus", "success!")
                         camera.cancelAutoFocus()
                         onPause()
-                        viewModel.photoVisibility.set(View.GONE)
-                        viewModel.declineAcceptVisibility.set(View.VISIBLE)
+                        cameraInfo.photoVisibility.set(View.GONE)
+                        cameraInfo.declineAcceptVisibility.set(View.VISIBLE)
                         lgd("Focus!")
                     }
 
@@ -104,6 +110,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         } else false
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
@@ -111,9 +118,14 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
             inflater, R.layout.fragment_camera, container, false);
         viewFinder = cameraBinding.cameraView
 
-        viewModel = CameraModel(this)
+        cameraInfo = CameraModel(this)
 
-        cameraBinding.camera = viewModel
+        cameraBinding.camera = cameraInfo
+        cameraBinding.galleryButton.setOnClickListener({ view ->
+            val viewModel: GalleryViewModel by activityViewModels()
+            viewModel.refresh()
+            findNavController().navigate(R.id.galleryFragment)
+        })
 
         if (!isExternalStorageAvailable() || isExternalStorageReadOnly()) {
             cameraBinding.previewButton.setEnabled(false)
@@ -152,7 +164,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         activity?.let { it1 -> ContextCompat.checkSelfPermission(it1.baseContext, it) } == PackageManager.PERMISSION_GRANTED
     }
 
-    public override fun onPause() {
+    override fun onPause() {
         super.onPause()
         viewFinder?.let { viewFinder.disableView() }
     }
@@ -161,7 +173,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         super.onDestroy()
         viewFinder?.let { viewFinder.disableView() }
     }
-    public override fun onResume() {
+    override fun onResume() {
         super.onResume()
         viewFinder?.let { viewFinder.enableView() }
 
@@ -204,6 +216,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
             return photoMat
         }
     }
+    @RequiresApi(Build.VERSION_CODES.O)
     fun packPhoto(){
         //Transform frame to bytes array
         val return_buff = ByteArray(
@@ -211,11 +224,14 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         )
         curFrame.get(0, 0, return_buff)
         buffSize = return_buff.size
+
         //Store bytes array to file
         storagePhoto(return_buff)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun storagePhoto(data:ByteArray){
+        val viewModel: GalleryViewModel by activityViewModels()
         //Data encrypting
         coder = Deflater()
         val codedBuff = ByteArray(buffSize)
@@ -225,8 +241,13 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         coder.end()
         //Load data to file
         try {
+            val date = Instant.now()
+            val realmDate = date.toRealmInstant()
+            name = DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm:ss")
+                .withZone(ZoneId.systemDefault()).format(realmDate.toInstant())
+
             val dataWriter = FileOutputStream(File(getActivity()?.getExternalFilesDir("BinaryStorage")
-                ?: null, "output.dat"))
+                ?: null, "${name}.dat"))
             val wrap =  DataOutputStream(dataWriter)
             wrap.writeInt(curFrame.size().width.toInt())
             wrap.writeInt(curFrame.size().height.toInt())
@@ -234,6 +255,17 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
             wrap.writeInt(buffSize)
             dataWriter.write(codedBuff)
             dataWriter.close()
+
+
+            viewModel.realm.writeBlocking {
+                copyToRealm(PhotoRealmObject().apply {
+                    this.date = realmDate
+                    this.name =  DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm:ss")
+                        .withZone(ZoneId.systemDefault()).format(realmDate.toInstant())
+                    this.oSize = buffSize
+                    this.cSize = compreseBuffSize
+                })
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -267,9 +299,8 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
 
     companion object {
         val TAG = "MYLOG " + MainActivity::class.java.simpleName
-        public fun lgd(s: String) = Log.d(TAG, s)
+        fun lgd(s: String) = Log.d(TAG, s)
         fun lge(s: String) = Log.e(TAG, s)
-        fun lgi(s: String) = Log.i(TAG, s)
 
         fun shortMsg(context: Context, s: String) =
             Toast.makeText(context, s, Toast.LENGTH_SHORT).show()

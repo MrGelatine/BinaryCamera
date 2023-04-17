@@ -19,13 +19,9 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:adapter="@{adapter}"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+            app:spanCount = "3"/>
 
-        <Button
-            android:id="@+id/addButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Add item" />
 
     </LinearLayout>
 </layout>

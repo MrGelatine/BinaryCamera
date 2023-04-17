@@ -1,7 +1,9 @@
 package com.example.binarycamera
 
 import android.graphics.Rect
+import android.os.Build
 import android.view.View
+import androidx.annotation.RequiresApi
 import androidx.databinding.BaseObservable
 import androidx.databinding.ObservableField
 import java.math.RoundingMode
@@ -26,6 +28,7 @@ class CameraModel(val cameraFragment:CameraFragment): BaseObservable() {
         cameraFragment.preview = false
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun Accept(){
         cameraFragment.packPhoto()
         cameraFragment.onResume()
