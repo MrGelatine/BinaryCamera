@@ -3,11 +3,13 @@ package com.example.binarycamera
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.hardware.Camera
 import android.hardware.camera2.CameraCharacteristics
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.SurfaceView
@@ -27,6 +29,7 @@ import com.example.binarycamera.databinding.FragmentCameraBinding
 import org.opencv.android.CameraBridgeViewBase
 import org.opencv.android.JavaCameraView
 import org.opencv.android.OpenCVLoader
+import org.opencv.android.Utils
 import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.core.Size
@@ -48,7 +51,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
 
     lateinit var imageMat: Mat
     private lateinit var cameraBinding : FragmentCameraBinding
-    private lateinit var cameraInfo: CameraModel
+    private lateinit var cameraInfo: CameraData
     private lateinit var viewFinder:JavaCameraView
     private var coder = Deflater()
     private var decoder = Inflater()
@@ -118,17 +121,24 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
             inflater, R.layout.fragment_camera, container, false);
         viewFinder = cameraBinding.cameraView
 
-        cameraInfo = CameraModel(this)
+        /*
+        var pSizes = mCamera.parameters.supportedPreviewSizes
+        viewFinder.disableView()
+        viewFinder.setMaxFrameSize(1920, 1080)
+        viewFinder.enableView()
+        */
+
+        cameraInfo = CameraData(this)
 
         cameraBinding.camera = cameraInfo
-        cameraBinding.galleryButton.setOnClickListener({ view ->
+        cameraBinding.galleryButton.setOnClickListener {
             val viewModel: GalleryViewModel by activityViewModels()
             viewModel.refresh()
-            findNavController().navigate(R.id.galleryFragment)
-        })
+            findNavController().navigate(R.id.action_cameraFragment_to_galleryFragment)
+        }
 
         if (!isExternalStorageAvailable() || isExternalStorageReadOnly()) {
-            cameraBinding.previewButton.setEnabled(false)
+            cameraBinding.galleryButton.isEnabled = false
         }
         // Request camera permissions
         if (allPermissionsGranted()) {
@@ -182,8 +192,6 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         imageMat = Mat(width, height, CvType.CV_8UC4)
         mCamera = viewFinder.mCamera
         mCamera.parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO)
-        cWidth = cameraBinding.cameraView.width
-        cHeight = cameraBinding.cameraView.height
         val nameObserver = Observer<Boolean> { f ->
             if(focus.value!!) {
                 mCamera.autoFocus(mAutoFocusTakePictureCallback)
@@ -191,6 +199,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         }
         focus.observe(this,nameObserver)
     }
+
 
     override fun onCameraViewStopped() {
         imageMat.release()
@@ -304,6 +313,31 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
 
         fun shortMsg(context: Context, s: String) =
             Toast.makeText(context, s, Toast.LENGTH_SHORT).show()
+        fun unpack(context:Context, fName:String): Bitmap{
+            val dataReader = FileInputStream(File(context.getExternalFilesDir("BinaryStorage") ?: null, fName))
+            val scanner = DataInputStream(dataReader)
+            val height = scanner.readInt().toDouble()
+            val width = scanner.readInt().toDouble()
+            val prevSize = Size(height,width)
+            val compBuffSize = scanner.readInt()
+            val bSize = scanner.readInt()
+            var res = ByteArray(compBuffSize)
+            dataReader.read(res)
+
+            //Unpack bytes
+            val decoder = Inflater()
+            decoder.setInput(res, 0, compBuffSize)
+            val result = ByteArray(bSize)
+            decoder.inflate(result)
+            decoder.end()
+
+            var prevMat = Mat(prevSize, CvType.CV_8UC1)
+            prevMat.put(0,0, result)
+            var bm = Bitmap.createBitmap(prevMat.cols(), prevMat.rows(), Bitmap.Config.ARGB_8888)
+
+            Utils.matToBitmap(prevMat, bm)
+            return bm
+        }
 
         // messages:
         const val OPENCV_SUCCESSFUL = "OpenCV Loaded Successfully!"

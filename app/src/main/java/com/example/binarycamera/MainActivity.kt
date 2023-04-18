@@ -3,15 +3,15 @@ package com.example.binarycamera
 import android.Manifest.permission.CAMERA
 import android.Manifest.permission.READ_EXTERNAL_STORAGE
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+import android.os.Build
 import android.os.Bundle
+import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
-import androidx.navigation.fragment.NavHostFragment
 import com.example.binarycamera.databinding.ActivityMainBinding
-import io.realm.kotlin.Realm
-import io.realm.kotlin.RealmConfiguration
 
 
 const val REQUEST_CODE_PERMISSIONS = 111
@@ -24,12 +24,13 @@ class MainActivity : AppCompatActivity(){
     private lateinit var mainBinding : ActivityMainBinding
     private lateinit var navGraph: NavController
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        val viewModel: GalleryViewModel by viewModels()
 
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
-        val navController = navHostFragment.navController
+        mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        viewModel.manager = supportFragmentManager
         navGraph = Navigation.findNavController(this, R.id.fragmentContainerView)
 
     }

@@ -10,14 +10,24 @@
         android:label="CameraFragment" >
         <action
             android:id="@+id/action_cameraFragment_to_galleryFragment"
-            app:destination="@id/galleryFragment" />
+            app:destination="@id/galleryFragment">
+        <argument
+            android:name="adapter"
+            app:argType=""
+            android:defaultValue="1" />
+        </action>
     </fragment>
     <fragment
         android:id="@+id/galleryFragment"
         android:name="com.example.binarycamera.GalleryFragment"
         android:label="GalleryFragment" >
         <action
-            android:id="@+id/action_galleryFragment_to_cameraFragment"
-            app:destination="@id/cameraFragment" />
+            android:id="@+id/action_galleryFragment_to_galleryPhotoFragment"
+            app:destination="@id/galleryPhotoFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/galleryPhotoFragment"
+        android:name="com.example.binarycamera.GalleryPhotoFragment"
+        android:label="fragment_gallery_photo"
+        tools:layout="@layout/fragment_gallery_photo" />
 </navigation>

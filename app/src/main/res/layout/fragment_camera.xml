@@ -5,7 +5,7 @@
     <data>
         <variable
             name="camera"
-            type="com.example.binarycamera.CameraModel"/>
+            type="com.example.binarycamera.CameraData"/>
     </data>
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/camera_container"
@@ -66,22 +66,12 @@
             app:layout_constraintStart_toEndOf="@+id/main_button" />
 
         <Button
-            android:id="@+id/previewButton"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:background="@drawable/rounded_button"
-            android:onClick="@{(v) -> camera.showPreview()}"
-            android:text="Preview"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <Button
             android:id="@+id/galleryButton"
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:background="@drawable/rounded_button"
             android:text="Gallery"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
