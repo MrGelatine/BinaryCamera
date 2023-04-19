@@ -9,12 +9,14 @@ import android.hardware.camera2.CameraCharacteristics
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.util.DisplayMetrics
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.SurfaceView
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
@@ -61,10 +63,9 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
     private lateinit var photoMat:Mat
     var buffSize:Int = 0
     var compreseBuffSize:Int = 0
-    var cWidth = -1
-    var cHeight = -1
     var name = ""
     lateinit var mCamera: Camera
+    lateinit var spinnerAdapter:ArrayAdapter<String>
     private val mAutoFocusTakePictureCallback =
         Camera.AutoFocusCallback { success, camera ->
             if (success) {
@@ -120,13 +121,26 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         cameraBinding = DataBindingUtil.inflate(
             inflater, R.layout.fragment_camera, container, false);
         viewFinder = cameraBinding.cameraView
+        spinnerAdapter =ArrayAdapter(
+            requireContext(),
+            R.layout.spinner_item)
+        cameraBinding.resolutionSpinner.adapter = spinnerAdapter
+        cameraBinding.resolutionSpinner.setSelection(0,false)
+        cameraBinding.resolutionSpinner.onItemSelectedListener = object :
+            AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                viewFinder.disableView()
+                val h = (view as TextView).text.split("x")[0].toInt()
+                val w = (view as TextView).text.split("x")[1].toInt()
+                viewFinder.setMaxFrameSize(w, h)
+                viewFinder.enableView()
+            } // to close the onItemSelected
 
-        /*
-        var pSizes = mCamera.parameters.supportedPreviewSizes
-        viewFinder.disableView()
-        viewFinder.setMaxFrameSize(1920, 1080)
-        viewFinder.enableView()
-        */
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                TODO("Not yet implemented")
+            }
+        }
+
 
         cameraInfo = CameraData(this)
 
@@ -192,6 +206,11 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         imageMat = Mat(width, height, CvType.CV_8UC4)
         mCamera = viewFinder.mCamera
         mCamera.parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO)
+        var resolitionList = mCamera.parameters.supportedPreviewSizes.map { "${it.height}x${it.width}" }
+        spinnerAdapter.clear()
+        spinnerAdapter.addAll(resolitionList)
+
+
         val nameObserver = Observer<Boolean> { f ->
             if(focus.value!!) {
                 mCamera.autoFocus(mAutoFocusTakePictureCallback)
