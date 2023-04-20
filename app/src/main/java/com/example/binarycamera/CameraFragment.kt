@@ -14,6 +14,9 @@ import android.view.LayoutInflater
 import android.view.SurfaceView
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN
+import android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN
+import android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.SeekBar
@@ -25,6 +28,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
@@ -46,6 +50,7 @@ import java.io.FileOutputStream
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.logging.Logger.global
 import java.util.zip.Deflater
 import java.util.zip.Inflater
 
@@ -67,6 +72,8 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
     var compreseBuffSize:Int = 0
     var threshold:Double = 40.0
     var name = ""
+    lateinit var inflater:LayoutInflater
+    lateinit var container: ViewGroup
     lateinit var mCamera: Camera
     lateinit var spinnerAdapter:ArrayAdapter<String>
     private val mAutoFocusTakePictureCallback =
@@ -96,33 +103,24 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
             }
         }
 
-    private fun checkOpenCV(context: Context) {
-        if (OpenCVLoader.initDebug()) {
-            shortMsg(context, OPENCV_SUCCESSFUL)
-            lgd("OpenCV started...")
-        } else {
-            lge(OPENCV_PROBLEM)
-        }
-    }
+
     private fun isExternalStorageReadOnly(): Boolean {
         val extStorageState = Environment.getExternalStorageState()
-        return if (Environment.MEDIA_MOUNTED_READ_ONLY == extStorageState) {
-            true
-        } else false
+        return Environment.MEDIA_MOUNTED_READ_ONLY == extStorageState
     }
     private fun isExternalStorageAvailable(): Boolean {
         val extStorageState = Environment.getExternalStorageState()
-        return if (Environment.MEDIA_MOUNTED == extStorageState) {
-            true
-        } else false
+        return Environment.MEDIA_MOUNTED == extStorageState
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        // Inflate the layout for this fragment
+        this.inflater = inflater
+        this.container = container!!
         cameraBinding = DataBindingUtil.inflate(
             inflater, R.layout.fragment_camera, container, false);
+
         viewFinder = cameraBinding.cameraView
         spinnerAdapter =ArrayAdapter(
             requireContext(),
@@ -171,38 +169,16 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
             cameraBinding.galleryButton.isEnabled = false
         }
         // Request camera permissions
-        if (allPermissionsGranted()) {
-            activity?.let { checkOpenCV(it.baseContext) }
-        } else {
-            ActivityCompat.requestPermissions(
-                activity as Activity,
-                REQUIRED_PERMISSIONS,
-                REQUEST_CODE_PERMISSIONS
-            )
-        }
         viewFinder.visibility = SurfaceView.VISIBLE
         viewFinder.setCameraIndex(
             CameraCharacteristics.LENS_FACING_FRONT)
         viewFinder.setCvCameraViewListener(this)
 
+
+
         return cameraBinding.root
     }
-    override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<String>, grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_CODE_PERMISSIONS) {
-            if (allPermissionsGranted()) {
-                activity?.let { checkOpenCV(it.baseContext) }
-            } else {
-                activity?.let { shortMsg(it.baseContext, PERMISSION_NOT_GRANTED) }
-                activity?.finish()
-            }
-        }
-    }
-    private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
-        activity?.let { it1 -> ContextCompat.checkSelfPermission(it1.baseContext, it) } == PackageManager.PERMISSION_GRANTED
-    }
+
 
     override fun onPause() {
         super.onPause()
