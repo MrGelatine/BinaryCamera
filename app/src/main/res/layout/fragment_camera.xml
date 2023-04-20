@@ -72,8 +72,9 @@
             android:layout_height="60dp"
             android:background="@drawable/rounded_button"
             android:text="Gallery"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:gravity="center"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <TextView
             android:id="@+id/resultSizeText"
@@ -88,11 +89,25 @@
 
         <Spinner
             android:id="@+id/resolutionSpinner"
-            android:layout_width="161dp"
-            android:layout_height="52dp"
+            android:layout_width="160dp"
+            android:layout_height="50dp"
             android:spinnerMode="dropdown"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <SeekBar
+            android:id="@+id/thresholdSeekBar"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:max="255"
+            android:padding="10dp"
+            android:progress="40"
+            android:progressDrawable="@drawable/threshold_scrubber_progress"
+            android:thumb="@drawable/threshold_scrubber_control"
+            android:visibility="visible"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

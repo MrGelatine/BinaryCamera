@@ -16,6 +16,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.SeekBar
+import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -52,7 +54,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
     var focus: MutableLiveData<Boolean> = MutableLiveData()
 
     lateinit var imageMat: Mat
-    private lateinit var cameraBinding : FragmentCameraBinding
+    lateinit var cameraBinding : FragmentCameraBinding
     private lateinit var cameraInfo: CameraData
     private lateinit var viewFinder:JavaCameraView
     private var coder = Deflater()
@@ -63,6 +65,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
     private lateinit var photoMat:Mat
     var buffSize:Int = 0
     var compreseBuffSize:Int = 0
+    var threshold:Double = 40.0
     var name = ""
     lateinit var mCamera: Camera
     lateinit var spinnerAdapter:ArrayAdapter<String>
@@ -141,7 +144,20 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
             }
         }
 
+        cameraBinding.thresholdSeekBar.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
+            override fun onStopTrackingTouch(seekBar: SeekBar) {
+                // TODO Auto-generated method stub
+            }
 
+            override fun onStartTrackingTouch(seekBar: SeekBar) {
+                // TODO Auto-generated method stub
+            }
+
+            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                // TODO Auto-generated method stub
+                threshold = progress.toDouble()
+            }
+        })
         cameraInfo = CameraData(this)
 
         cameraBinding.camera = cameraInfo
@@ -235,7 +251,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
                 Imgproc.ADAPTIVE_THRESH_MEAN_C,
                 Imgproc.THRESH_BINARY,
                 15,
-                40.0
+                threshold
             );
             curFrame = imageMat.clone()
             return imageMat

@@ -17,12 +17,16 @@ class CameraData(val cameraFragment:CameraFragment): BaseObservable() {
 
     fun makePhoto() {
         cameraFragment.focus.value = true
+        cameraFragment.cameraBinding.resolutionSpinner.visibility = View.GONE
+        cameraFragment.cameraBinding.thresholdSeekBar.visibility = View.GONE
     }
 
     fun Decline(){
         cameraFragment.onResume()
         photoVisibility.set(View.VISIBLE)
         declineAcceptVisibility.set(View.GONE)
+        cameraFragment.cameraBinding.resolutionSpinner.visibility = View.VISIBLE
+        cameraFragment.cameraBinding.thresholdSeekBar.visibility = View.VISIBLE
         cameraFragment.preview = false
     }
 
@@ -32,6 +36,8 @@ class CameraData(val cameraFragment:CameraFragment): BaseObservable() {
         cameraFragment.onResume()
         photoVisibility.set(View.VISIBLE)
         declineAcceptVisibility.set(View.GONE)
+        cameraFragment.cameraBinding.resolutionSpinner.visibility = View.VISIBLE
+        cameraFragment.cameraBinding.thresholdSeekBar.visibility = View.VISIBLE
         cameraFragment.preview = false
     }
     fun showPreview() {
