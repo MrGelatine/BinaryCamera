@@ -2,21 +2,18 @@ package com.example.binarycamera
 
 import android.app.Activity
 import android.content.Context
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.hardware.Camera
 import android.hardware.camera2.CameraCharacteristics
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.SurfaceView
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN
-import android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN
-import android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.SeekBar
@@ -24,11 +21,8 @@ import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
@@ -36,7 +30,6 @@ import androidx.navigation.fragment.findNavController
 import com.example.binarycamera.databinding.FragmentCameraBinding
 import org.opencv.android.CameraBridgeViewBase
 import org.opencv.android.JavaCameraView
-import org.opencv.android.OpenCVLoader
 import org.opencv.android.Utils
 import org.opencv.core.CvType
 import org.opencv.core.Mat
@@ -50,7 +43,6 @@ import java.io.FileOutputStream
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.logging.Logger.global
 import java.util.zip.Deflater
 import java.util.zip.Inflater
 
@@ -69,11 +61,10 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
     //Preview Content
     private lateinit var photoMat:Mat
     var buffSize:Int = 0
+    lateinit var codedBuff:ByteArray
     var compreseBuffSize:Int = 0
     var threshold:Double = 40.0
     var name = ""
-    lateinit var inflater:LayoutInflater
-    lateinit var container: ViewGroup
     lateinit var mCamera: Camera
     lateinit var spinnerAdapter:ArrayAdapter<String>
     private val mAutoFocusTakePictureCallback =
@@ -116,8 +107,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        this.inflater = inflater
-        this.container = container!!
+
         cameraBinding = DataBindingUtil.inflate(
             inflater, R.layout.fragment_camera, container, false);
 
@@ -248,19 +238,11 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         //Store bytes array to file
         storagePhoto(return_buff)
     }
-
+    //Load data to file
     @RequiresApi(Build.VERSION_CODES.O)
-    fun storagePhoto(data:ByteArray){
-        val viewModel: GalleryViewModel by activityViewModels()
-        //Data encrypting
-        coder = Deflater()
-        val codedBuff = ByteArray(buffSize)
-        coder.setInput(data)
-        coder.finish()
-        compreseBuffSize = coder.deflate(codedBuff)
-        coder.end()
-        //Load data to file
+    fun saveToFile(){
         try {
+            val viewModel: GalleryViewModel by activityViewModels()
             val date = Instant.now()
             val realmDate = date.toRealmInstant()
             name = DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm:ss")
@@ -269,8 +251,8 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
             val dataWriter = FileOutputStream(File(getActivity()?.getExternalFilesDir("BinaryStorage")
                 ?: null, "${name}.dat"))
             val wrap =  DataOutputStream(dataWriter)
-            wrap.writeInt(curFrame.size().width.toInt())
-            wrap.writeInt(curFrame.size().height.toInt())
+            wrap.writeShort(curFrame.size().width.toInt())
+            wrap.writeShort(curFrame.size().height.toInt())
             wrap.writeInt(compreseBuffSize)
             wrap.writeInt(buffSize)
             dataWriter.write(codedBuff)
@@ -289,14 +271,29 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         } catch (e: Exception) {
             e.printStackTrace()
         }
+
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun storagePhoto(data:ByteArray){
+        //Data encrypting
+        coder = Deflater()
+        codedBuff = ByteArray(buffSize)
+        coder.setInput(data)
+        coder.finish()
+        compreseBuffSize = coder.deflate(codedBuff)
+        codedBuff = codedBuff.slice(0..compreseBuffSize-1).toByteArray()
+        coder.end()
+        cameraBinding.sizeView.text = "${buffSize/1000.0}KB -> ${compreseBuffSize/1000.0}KB"
+
     }
 
     fun unpackPhoto(){
         //Load bytes from file
         val dataReader = FileInputStream(File(getActivity()?.getExternalFilesDir("BinaryStorage") ?: null, "output.dat"))
         val scanner = DataInputStream(dataReader)
-        val height = scanner.readInt().toDouble()
-        val width = scanner.readInt().toDouble()
+        val height = scanner.readShort().toDouble()
+        val width = scanner.readShort().toDouble()
         val prevSize = Size(height,width)
         val dada = DataInputStream(dataReader)
         val compBuffSize = dada.readInt()
@@ -324,14 +321,16 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
 
         fun shortMsg(context: Context, s: String) =
             Toast.makeText(context, s, Toast.LENGTH_SHORT).show()
-        fun unpack(context:Context, fName:String): Bitmap{
+        fun unpack(context:Activity, fName:String): Bitmap{
             val dataReader = FileInputStream(File(context.getExternalFilesDir("BinaryStorage") ?: null, fName))
             val scanner = DataInputStream(dataReader)
+
             val height = scanner.readInt().toDouble()
             val width = scanner.readInt().toDouble()
-            val prevSize = Size(height,width)
             val compBuffSize = scanner.readInt()
             val bSize = scanner.readInt()
+
+            val prevSize = Size(height,width)
             var res = ByteArray(compBuffSize)
             dataReader.read(res)
 
@@ -344,9 +343,16 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
 
             var prevMat = Mat(prevSize, CvType.CV_8UC1)
             prevMat.put(0,0, result)
+
+            val displayMetrics = DisplayMetrics()
+            context.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics)
+            val h = displayMetrics.heightPixels //2132
+            val w = displayMetrics.widthPixels //1080
+
             var bm = Bitmap.createBitmap(prevMat.cols(), prevMat.rows(), Bitmap.Config.ARGB_8888)
 
             Utils.matToBitmap(prevMat, bm)
+            bm = Bitmap.createScaledBitmap(bm,w,h,true)
             return bm
         }
 

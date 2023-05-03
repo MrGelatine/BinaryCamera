@@ -108,6 +108,17 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <TextView
+            android:id="@+id/sizeView"
+            android:layout_width="91dp"
+            android:layout_height="43dp"
+            android:gravity="center"
+            android:text="TextView"
+            android:visibility="@{camera.declineAcceptVisibility}"
+            app:layout_constraintEnd_toStartOf="@+id/thresholdSeekBar"
+            app:layout_constraintStart_toEndOf="@+id/resolutionSpinner"
+            app:layout_constraintTop_toTopOf="parent" />
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

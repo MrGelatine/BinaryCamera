@@ -29,7 +29,7 @@ class GalleryPhotoFragment : Fragment() {
             findNavController().popBackStack()
         }
         val viewModel: GalleryViewModel by activityViewModels()
-        binding.photoView.setImageBitmap(CameraFragment.unpack(requireContext(),viewModel.curPhoto.value+".dat"))
+        binding.photoView.setImageBitmap(activity?.let { CameraFragment.unpack(it,viewModel.curPhoto.value+".dat") })
         binding.photoView.rotation = 90f
         return binding.root
     }

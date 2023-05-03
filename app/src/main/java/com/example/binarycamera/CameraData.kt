@@ -15,10 +15,12 @@ class CameraData(val cameraFragment:CameraFragment): BaseObservable() {
     var fileSize= ObservableField<String>()
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun makePhoto() {
         cameraFragment.focus.value = true
         cameraFragment.cameraBinding.resolutionSpinner.visibility = View.GONE
         cameraFragment.cameraBinding.thresholdSeekBar.visibility = View.GONE
+        cameraFragment.packPhoto()
     }
 
     fun Decline(){
@@ -32,7 +34,7 @@ class CameraData(val cameraFragment:CameraFragment): BaseObservable() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun Accept(){
-        cameraFragment.packPhoto()
+        cameraFragment.saveToFile()
         cameraFragment.onResume()
         photoVisibility.set(View.VISIBLE)
         declineAcceptVisibility.set(View.GONE)
