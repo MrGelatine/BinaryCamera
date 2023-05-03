@@ -9,6 +9,9 @@ import androidx.lifecycle.ViewModel
 import io.realm.kotlin.Realm
 import io.realm.kotlin.RealmConfiguration
 import io.realm.kotlin.ext.query
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileNotFoundException
 
 @RequiresApi(Build.VERSION_CODES.O)
 class GalleryViewModel: ViewModel() {
@@ -18,11 +21,20 @@ class GalleryViewModel: ViewModel() {
     var context:Activity? = null
     var curPhoto: MutableLiveData<String> = MutableLiveData()
     lateinit var manager: FragmentManager
-    init{
-        data.value = realm.copyFromRealm(realm.query<PhotoRealmObject>().find()).map{it.toTileData(adapter)!!}.toMutableList()
-    }
     fun refresh(){
-        data.value = realm.copyFromRealm(realm.query<PhotoRealmObject>().find()).map{it.toTileData(adapter)!!}.toMutableList()
+        var temp = realm.copyFromRealm(realm.query<PhotoRealmObject>().find()).map{it.toTileData(adapter)!!}.toMutableList()
+        data.value = mutableListOf()
+        for(elem in temp){
+            try {
+                FileInputStream(File("${context?.getExternalFilesDir("BinaryStorage").toString()}/${elem.name}.dat"))
+                data.value?.add(elem)
+
+            }catch (e:FileNotFoundException){
+
+            }
+        }
         adapter.refresh(data.value!!)
     }
+
+
 }

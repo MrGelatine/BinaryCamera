@@ -21,6 +21,7 @@ import java.util.zip.Inflater
 
 class GalleryAdapter(val vModel: GalleryViewModel): RecyclerView.Adapter<GalleryViewHolder>() {
     var recyclerRows:MutableList<TileData> = mutableListOf()
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GalleryViewHolder {
         val binding:TilePreviewBinding= DataBindingUtil.inflate(
             LayoutInflater.from(parent.context),
