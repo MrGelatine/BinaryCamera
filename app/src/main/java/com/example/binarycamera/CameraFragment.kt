@@ -58,6 +58,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
     private var decoder = Inflater()
     var preview = false
     private lateinit var curFrame:Mat
+    private lateinit var savePauseFrame:Mat
     //Preview Content
     private lateinit var photoMat:Mat
     var buffSize:Int = 0
@@ -65,6 +66,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
     var compreseBuffSize:Int = 0
     var threshold:Double = 40.0
     var name = ""
+    var pause = false
     lateinit var mCamera: Camera
     lateinit var spinnerAdapter:ArrayAdapter<String>
     private val mAutoFocusTakePictureCallback =
@@ -73,7 +75,6 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
                 focus.value = false
                 Log.i("tap_to_focus", "success!")
                 camera.cancelAutoFocus()
-                onPause()
                 cameraInfo.photoVisibility.set(View.GONE)
                 cameraInfo.declineAcceptVisibility.set(View.VISIBLE)
                 lgd("Focus!")
@@ -84,7 +85,6 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
                         focus.value = false
                         Log.i("tap_to_focus", "success!")
                         camera.cancelAutoFocus()
-                        onPause()
                         cameraInfo.photoVisibility.set(View.GONE)
                         cameraInfo.declineAcceptVisibility.set(View.VISIBLE)
                         lgd("Focus!")
@@ -134,7 +134,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
 
         cameraBinding.thresholdSeekBar.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
             override fun onStopTrackingTouch(seekBar: SeekBar) {
-                // TODO Auto-generated method stub
+                packPhoto()
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar) {
@@ -207,24 +207,24 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
     }
 
     override fun onCameraFrame(inputFrame: CameraBridgeViewBase.CvCameraViewFrame?): Mat {
-        if(!preview) {
+        if(!pause){
             imageMat = inputFrame!!.rgba()
-            Imgproc.cvtColor(imageMat, imageMat, Imgproc.COLOR_RGB2GRAY);
-            Imgproc.adaptiveThreshold(
-                imageMat,
-                imageMat,
-                255.0,
-                Imgproc.ADAPTIVE_THRESH_MEAN_C,
-                Imgproc.THRESH_BINARY,
-                15,
-                threshold
-            );
-            curFrame = imageMat.clone()
-            return imageMat
+            savePauseFrame = imageMat.clone()
+        }else{
+            imageMat = savePauseFrame.clone()
         }
-        else{
-            return photoMat
-        }
+        Imgproc.cvtColor(imageMat, imageMat, Imgproc.COLOR_RGB2GRAY);
+        Imgproc.adaptiveThreshold(
+            imageMat,
+            imageMat,
+            255.0,
+            Imgproc.ADAPTIVE_THRESH_MEAN_C,
+            Imgproc.THRESH_BINARY,
+            15,
+            threshold
+        )
+        curFrame = imageMat.clone()
+            return curFrame
     }
     @RequiresApi(Build.VERSION_CODES.O)
     fun packPhoto(){
@@ -325,8 +325,8 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
             val dataReader = FileInputStream(File(context.getExternalFilesDir("BinaryStorage") ?: null, fName))
             val scanner = DataInputStream(dataReader)
 
-            val height = scanner.readInt().toDouble()
-            val width = scanner.readInt().toDouble()
+            val height = scanner.readShort().toDouble()
+            val width = scanner.readShort().toDouble()
             val compBuffSize = scanner.readInt()
             val bSize = scanner.readInt()
 
