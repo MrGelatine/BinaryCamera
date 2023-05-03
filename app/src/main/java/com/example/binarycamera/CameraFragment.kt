@@ -1,5 +1,6 @@
 package com.example.binarycamera
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
@@ -39,6 +40,7 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.File
 import java.io.FileInputStream
+import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.time.Instant
 import java.time.ZoneId
@@ -75,8 +77,6 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
                 focus.value = false
                 Log.i("tap_to_focus", "success!")
                 camera.cancelAutoFocus()
-                cameraInfo.photoVisibility.set(View.GONE)
-                cameraInfo.declineAcceptVisibility.set(View.VISIBLE)
                 lgd("Focus!")
             }else{
                 camera.cancelAutoFocus()
@@ -85,8 +85,6 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
                         focus.value = false
                         Log.i("tap_to_focus", "success!")
                         camera.cancelAutoFocus()
-                        cameraInfo.photoVisibility.set(View.GONE)
-                        cameraInfo.declineAcceptVisibility.set(View.VISIBLE)
                         lgd("Focus!")
                     }
 
@@ -151,6 +149,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         cameraBinding.camera = cameraInfo
         cameraBinding.galleryButton.setOnClickListener {
             val viewModel: GalleryViewModel by activityViewModels()
+            viewModel.context = activity
             viewModel.refresh()
             findNavController().navigate(R.id.action_cameraFragment_to_galleryFragment)
         }
@@ -224,7 +223,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
             threshold
         )
         curFrame = imageMat.clone()
-            return curFrame
+        return curFrame
     }
     @RequiresApi(Build.VERSION_CODES.O)
     fun packPhoto(){
@@ -243,10 +242,11 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
     fun saveToFile(){
         try {
             val viewModel: GalleryViewModel by activityViewModels()
+
             val date = Instant.now()
             val realmDate = date.toRealmInstant()
             name = DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm:ss")
-                .withZone(ZoneId.systemDefault()).format(realmDate.toInstant())
+                .withZone(ZoneId.systemDefault()).format(realmDate.toInstant()).replace(':','_')
 
             val dataWriter = FileOutputStream(File(getActivity()?.getExternalFilesDir("BinaryStorage")
                 ?: null, "${name}.dat"))
@@ -263,7 +263,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
                 copyToRealm(PhotoRealmObject().apply {
                     this.date = realmDate
                     this.name =  DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm:ss")
-                        .withZone(ZoneId.systemDefault()).format(realmDate.toInstant())
+                        .withZone(ZoneId.systemDefault()).format(realmDate.toInstant()).replace(':','_')
                     this.oSize = buffSize
                     this.cSize = compreseBuffSize
                 })
@@ -289,28 +289,37 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
     }
 
     fun unpackPhoto(){
-        //Load bytes from file
-        val dataReader = FileInputStream(File(getActivity()?.getExternalFilesDir("BinaryStorage") ?: null, "output.dat"))
-        val scanner = DataInputStream(dataReader)
-        val height = scanner.readShort().toDouble()
-        val width = scanner.readShort().toDouble()
-        val prevSize = Size(height,width)
-        val dada = DataInputStream(dataReader)
-        val compBuffSize = dada.readInt()
-        val bSize = dada.readInt()
-        var res = ByteArray(compBuffSize)
-        dataReader.read(res)
+        try {
+            //Load bytes from file
+            val dataReader = FileInputStream(
+                File(
+                    getActivity()?.getExternalFilesDir("BinaryStorage") ?: null,
+                    "output.dat"
+                )
+            )
+            val scanner = DataInputStream(dataReader)
+            val height = scanner.readShort().toDouble()
+            val width = scanner.readShort().toDouble()
+            val prevSize = Size(height, width)
+            val dada = DataInputStream(dataReader)
+            val compBuffSize = dada.readInt()
+            val bSize = dada.readInt()
+            var res = ByteArray(compBuffSize)
+            dataReader.read(res)
 
-        //Unpack bytes
-        decoder = Inflater()
-        decoder.setInput(res, 0, compBuffSize)
-        val result = ByteArray(bSize)
-        decoder.inflate(result)
-        decoder.end()
+            //Unpack bytes
+            decoder = Inflater()
+            decoder.setInput(res, 0, compBuffSize)
+            val result = ByteArray(bSize)
+            decoder.inflate(result)
+            decoder.end()
 
-        var prevMat = Mat(prevSize, CvType.CV_8UC1)
-        prevMat.put(0,0, result)
-        photoMat = prevMat
+            var prevMat = Mat(prevSize, CvType.CV_8UC1)
+            prevMat.put(0, 0, result)
+            photoMat = prevMat
+        }catch (e:FileNotFoundException){
+
+        }
 
     }
 
