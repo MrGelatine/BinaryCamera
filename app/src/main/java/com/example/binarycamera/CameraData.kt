@@ -15,6 +15,7 @@ class CameraData(val cameraFragment:CameraFragment): BaseObservable() {
     var fileSize= ObservableField<String>()
 
 
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun makePhoto() {
         cameraFragment.focus.value = true
