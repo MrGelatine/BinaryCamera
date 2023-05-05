@@ -1,6 +1,5 @@
 package com.example.binarycamera
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
@@ -150,7 +149,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         cameraBinding.galleryButton.setOnClickListener {
             val viewModel: GalleryViewModel by activityViewModels()
             viewModel.context = activity
-            viewModel.refresh()
+            activity?.let { it1 -> viewModel.refresh(it1) }
             findNavController().navigate(R.id.action_cameraFragment_to_galleryFragment)
         }
 
@@ -241,12 +240,10 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
     @RequiresApi(Build.VERSION_CODES.O)
     fun saveToFile(){
         try {
-            val viewModel: GalleryViewModel by activityViewModels()
 
             val date = Instant.now()
-            val realmDate = date.toRealmInstant()
             name = DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm:ss")
-                .withZone(ZoneId.systemDefault()).format(realmDate.toInstant()).replace(':','_')
+                .withZone(ZoneId.systemDefault()).format(date).replace(':','_')
 
             val dataWriter = FileOutputStream(File(getActivity()?.getExternalFilesDir("BinaryStorage")
                 ?: null, "${name}.dat"))
@@ -259,15 +256,6 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
             dataWriter.close()
 
 
-            viewModel.realm.writeBlocking {
-                copyToRealm(PhotoRealmObject().apply {
-                    this.date = realmDate
-                    this.name =  DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm:ss")
-                        .withZone(ZoneId.systemDefault()).format(realmDate.toInstant()).replace(':','_')
-                    this.oSize = buffSize
-                    this.cSize = compreseBuffSize
-                })
-            }
         } catch (e: Exception) {
             e.printStackTrace()
         }

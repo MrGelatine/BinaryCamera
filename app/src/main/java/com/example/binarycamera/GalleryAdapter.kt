@@ -1,7 +1,6 @@
 package com.example.binarycamera
 
 import android.app.Activity
-import android.graphics.Bitmap
 import android.os.Build
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -9,14 +8,6 @@ import androidx.annotation.RequiresApi
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.binarycamera.databinding.TilePreviewBinding
-import org.opencv.android.Utils
-import org.opencv.core.CvType
-import org.opencv.core.Mat
-import org.opencv.core.Size
-import java.io.DataInputStream
-import java.io.File
-import java.io.FileInputStream
-import java.util.zip.Inflater
 
 
 class GalleryAdapter(val vModel: GalleryViewModel): RecyclerView.Adapter<GalleryViewHolder>() {
@@ -51,7 +42,7 @@ class GalleryViewHolder(var tilePreviewBinding: TilePreviewBinding) :
 
     fun bind(obj: Any?, context:Activity) {
         tilePreviewBinding.setVariable(BR.model, obj)
-        tilePreviewBinding.photoPreview.setImageBitmap(CameraFragment.unpack(context,(obj as TileData).name+".dat"))
+        tilePreviewBinding.photoPreview.setImageBitmap(CameraFragment.unpack(context,(obj as TileData).name))
         tilePreviewBinding.photoPreview.rotation = 90f
         tilePreviewBinding.executePendingBindings()
     }
