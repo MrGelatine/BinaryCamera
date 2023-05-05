@@ -149,7 +149,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         cameraBinding.galleryButton.setOnClickListener {
             val viewModel: GalleryViewModel by activityViewModels()
             viewModel.context = activity
-            activity?.let { it1 -> viewModel.refresh(it1) }
+            viewModel.refresh(context?.getExternalFilesDir("BinaryStorage").toString())
             findNavController().navigate(R.id.action_cameraFragment_to_galleryFragment)
         }
 

@@ -17,10 +17,10 @@ class GalleryViewModel: ViewModel() {
     var context:Activity? = null
     var curPhoto: MutableLiveData<String> = MutableLiveData()
     lateinit var manager: FragmentManager
-    fun refresh(context:Activity){
+    fun refresh(path:String){
         this.context = context
         data.value = mutableListOf()
-        for(elem in File(context?.getExternalFilesDir("BinaryStorage").toString()).walkTopDown()) {
+        for(elem in File(path).walkTopDown()) {
             if (".dat".toRegex().find(elem.name) != null) {
                 data.value?.add(
                     TileData(
