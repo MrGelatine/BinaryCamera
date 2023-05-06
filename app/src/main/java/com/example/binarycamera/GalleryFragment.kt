@@ -12,6 +12,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.binarycamera.databinding.FragmentGalleryBinding
+import java.io.File
 
 class GalleryFragment() : Fragment() {
 
@@ -34,6 +35,24 @@ class GalleryFragment() : Fragment() {
 
         requireActivity().onBackPressedDispatcher.addCallback(this) {
             findNavController().popBackStack()
+            viewModel.showChecked.value = View.GONE
+
+        }
+        viewModel.showChecked.observe(viewLifecycleOwner) {
+            for(elem in viewModel.data.value!!){
+                elem.checkedVisibility.set(it)
+            }
+            binding.deleteButton.visibility = it
+
+        }
+        binding.deleteButton.setOnClickListener{
+            for(elem in viewModel.data.value!!){
+                if(elem.checked.get()){
+                    File(activity?.getExternalFilesDir("BinaryStorage"), elem.name).delete()
+                }
+            }
+            viewModel.showChecked.value = View.GONE
+            viewModel.refresh(activity?.getExternalFilesDir("BinaryStorage").toString())
         }
         return binding.root
     }

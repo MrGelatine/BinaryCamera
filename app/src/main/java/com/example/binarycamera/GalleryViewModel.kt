@@ -2,6 +2,7 @@ package com.example.binarycamera
 
 import android.app.Activity
 import android.os.Build
+import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.MutableLiveData
@@ -16,6 +17,7 @@ class GalleryViewModel: ViewModel() {
     var adapter:GalleryAdapter = GalleryAdapter(this)
     var context:Activity? = null
     var curPhoto: MutableLiveData<String> = MutableLiveData()
+    var showChecked:MutableLiveData<Int> = MutableLiveData(View.GONE)
     lateinit var manager: FragmentManager
     fun refresh(path:String){
         this.context = context
@@ -26,7 +28,7 @@ class GalleryViewModel: ViewModel() {
                     TileData(
                         elem.name,
                         LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant(),
-                        adapter
+                        adapter,this
                     )
                 )
             }
