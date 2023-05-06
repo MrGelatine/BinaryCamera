@@ -31,6 +31,7 @@ class CameraData(val cameraFragment:CameraFragment): BaseObservable() {
         declineAcceptVisibility.set(View.GONE)
         cameraFragment.cameraBinding.mainButton.visibility = View.VISIBLE
         cameraFragment.preview = false
+        cameraFragment.cameraBinding.sizeView.text = ""
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -41,6 +42,7 @@ class CameraData(val cameraFragment:CameraFragment): BaseObservable() {
         declineAcceptVisibility.set(View.GONE)
         cameraFragment.cameraBinding.mainButton.visibility = View.VISIBLE
         cameraFragment.preview = false
+        cameraFragment.cameraBinding.sizeView.text = ""
     }
     fun showPreview() {
         if (!cameraFragment.preview) {

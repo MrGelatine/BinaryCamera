@@ -1,6 +1,7 @@
 package com.example.binarycamera
 
 import android.app.Activity
+import android.graphics.Bitmap
 import android.os.Build
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -27,6 +28,7 @@ class GalleryAdapter(val vModel: GalleryViewModel): RecyclerView.Adapter<Gallery
     @RequiresApi(Build.VERSION_CODES.O)
     fun refresh(tiles:MutableList<TileData>) {
         recyclerRows = tiles
+        notifyDataSetChanged()
     }
 
     override fun getItemCount(): Int {
@@ -42,7 +44,8 @@ class GalleryViewHolder(var tilePreviewBinding: TilePreviewBinding) :
 
     fun bind(obj: Any?, context:Activity) {
         tilePreviewBinding.setVariable(BR.model, obj)
-        tilePreviewBinding.photoPreview.setImageBitmap(CameraFragment.unpack(context,(obj as TileData).name))
+        var tile = CameraFragment.unpack(context,(obj as TileData).name)
+        tilePreviewBinding.photoPreview.setImageBitmap(Bitmap.createScaledBitmap(tile,tile.width,tile.width,false))
         tilePreviewBinding.photoPreview.rotation = 90f
         tilePreviewBinding.executePendingBindings()
     }
