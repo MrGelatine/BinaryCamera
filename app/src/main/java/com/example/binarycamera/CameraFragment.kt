@@ -59,13 +59,13 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
     private var decoder = Inflater()
     var preview = false
     private lateinit var curFrame:Mat
-    private lateinit var savePauseFrame:Mat
+    lateinit var savePauseFrame:Mat
     //Preview Content
     private lateinit var photoMat:Mat
     var buffSize:Int = 0
     lateinit var codedBuff:ByteArray
     var compreseBuffSize:Int = 0
-    var threshold:Double = 40.0
+    val viewModel: CameraViewModel by activityViewModels()
     var name = ""
     var pause = false
     lateinit var mCamera: Camera
@@ -112,8 +112,9 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         spinnerAdapter =ArrayAdapter(
             requireContext(),
             R.layout.spinner_item)
+        cameraBinding.thresholdSeekBar.progress = viewModel.threshold.toInt()
         cameraBinding.resolutionSpinner.adapter = spinnerAdapter
-        cameraBinding.resolutionSpinner.setSelection(0,false)
+        cameraBinding.resolutionSpinner.setSelection(viewModel.resolutionPos,false)
         cameraBinding.resolutionSpinner.onItemSelectedListener = object :
             AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
@@ -122,7 +123,8 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
                 val w = (view as TextView).text.split("x")[1].toInt()
                 viewFinder.setMaxFrameSize(w, h)
                 viewFinder.enableView()
-            } // to close the onItemSelected
+                viewModel.resolutionPos = position
+            }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
                 TODO("Not yet implemented")
@@ -140,12 +142,12 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
 
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                 // TODO Auto-generated method stub
-                threshold = progress.toDouble()
+                viewModel.threshold = progress.toDouble()
             }
         })
         cameraInfo = CameraData(this)
 
-        cameraBinding.camera = cameraInfo
+
         cameraBinding.galleryButton.setOnClickListener {
             val viewModel: GalleryViewModel by activityViewModels()
             viewModel.context = activity
@@ -163,7 +165,15 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         viewFinder.setCvCameraViewListener(this)
 
 
+        //Load setup
+        savePauseFrame = viewModel.savePauseFrame
+        focus.value = viewModel.focus
+        pause = viewModel.pause
+        preview = viewModel.preview
+        cameraInfo.declineAcceptVisibility.set(viewModel.declineAcceptVisibility)
+        cameraInfo.photoVisibility.set(viewModel.photoVisibility)
 
+        cameraBinding.camera = cameraInfo
         return cameraBinding.root
     }
 
@@ -219,7 +229,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
             Imgproc.ADAPTIVE_THRESH_MEAN_C,
             Imgproc.THRESH_BINARY,
             15,
-            threshold
+            viewModel.threshold
         )
         curFrame = imageMat.clone()
         return curFrame

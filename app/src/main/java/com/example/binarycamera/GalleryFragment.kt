@@ -34,9 +34,14 @@ class GalleryFragment() : Fragment() {
         binding.adapter = viewModel.adapter
 
         requireActivity().onBackPressedDispatcher.addCallback(this) {
-            findNavController().popBackStack()
-            viewModel.showChecked.value = View.GONE
-
+            if(viewModel.showChecked.value == View.VISIBLE){
+                viewModel.showChecked.value = View.GONE
+                for(tile in viewModel.data.value!!){
+                    tile.checked.set(false)
+                }
+            }else{
+                findNavController().popBackStack()
+            }
         }
         viewModel.showChecked.observe(viewLifecycleOwner) {
             for(elem in viewModel.data.value!!){

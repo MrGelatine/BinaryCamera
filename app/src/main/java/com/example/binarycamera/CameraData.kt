@@ -9,9 +9,9 @@ import java.math.RoundingMode
 
 
 class CameraData(val cameraFragment:CameraFragment): BaseObservable() {
-    var photoVisibility = ObservableField(View.VISIBLE)
-    var declineAcceptVisibility = ObservableField(View.GONE)
-    var fileSizeVisibility = ObservableField(View.GONE)
+    var photoVisibility = ObservableField(cameraFragment.viewModel.photoVisibility)
+    var declineAcceptVisibility = ObservableField(cameraFragment.viewModel.declineAcceptVisibility)
+    var fileSizeVisibility = ObservableField(cameraFragment.viewModel.declineAcceptVisibility)
     var fileSize= ObservableField<String>()
 
 
@@ -21,7 +21,15 @@ class CameraData(val cameraFragment:CameraFragment): BaseObservable() {
         cameraFragment.focus.value = true
         cameraFragment.pause = true
         declineAcceptVisibility.set(View.VISIBLE)
-        cameraFragment.cameraBinding.mainButton.visibility = View.GONE
+        photoVisibility.set(View.GONE)
+
+        cameraFragment.viewModel.savePauseFrame = cameraFragment.savePauseFrame.clone()
+        cameraFragment.viewModel.focus = true
+        cameraFragment.viewModel.pause = true
+        cameraFragment.viewModel.declineAcceptVisibility = View.VISIBLE
+        cameraFragment.viewModel.photoVisibility = View.GONE
+
+
         cameraFragment.packPhoto()
     }
 
@@ -29,8 +37,13 @@ class CameraData(val cameraFragment:CameraFragment): BaseObservable() {
         cameraFragment.pause = false
         photoVisibility.set(View.VISIBLE)
         declineAcceptVisibility.set(View.GONE)
-        cameraFragment.cameraBinding.mainButton.visibility = View.VISIBLE
         cameraFragment.preview = false
+
+        cameraFragment.viewModel.pause = false
+        cameraFragment.viewModel.preview = false
+        cameraFragment.viewModel.photoVisibility = View.VISIBLE
+        cameraFragment.viewModel.declineAcceptVisibility = View.GONE
+
         cameraFragment.cameraBinding.sizeView.text = ""
     }
 
@@ -40,22 +53,7 @@ class CameraData(val cameraFragment:CameraFragment): BaseObservable() {
         cameraFragment.pause = false
         photoVisibility.set(View.VISIBLE)
         declineAcceptVisibility.set(View.GONE)
-        cameraFragment.cameraBinding.mainButton.visibility = View.VISIBLE
         cameraFragment.preview = false
         cameraFragment.cameraBinding.sizeView.text = ""
-    }
-    fun showPreview() {
-        if (!cameraFragment.preview) {
-            fileSizeVisibility.set(View.VISIBLE)
-            fileSize.set("${(cameraFragment.buffSize / 8000.0).toBigDecimal().setScale(2, RoundingMode.UP)}КB -> ${(cameraFragment.compreseBuffSize / 8000.0).toBigDecimal().setScale(2, RoundingMode.UP)}КB")
-            cameraFragment.unpackPhoto()
-            photoVisibility.set(View.GONE)
-            cameraFragment.preview = true
-        } else {
-            fileSizeVisibility.set(View.GONE)
-            photoVisibility.set(View.VISIBLE)
-            declineAcceptVisibility.set(View.GONE)
-            cameraFragment.preview = false
-        }
     }
 }
