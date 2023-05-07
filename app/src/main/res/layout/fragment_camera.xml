@@ -92,6 +92,7 @@
             android:layout_width="160dp"
             android:layout_height="50dp"
             android:spinnerMode="dropdown"
+            android:visibility="@{camera.photoVisibility}"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -99,7 +100,8 @@
             android:id="@+id/thresholdSeekBar"
             android:layout_width="160dp"
             android:layout_height="wrap_content"
-            android:max="255"
+            android:max="100"
+            android:min="5"
             android:padding="10dp"
             android:progress="40"
             android:progressDrawable="@drawable/threshold_scrubber_progress"
