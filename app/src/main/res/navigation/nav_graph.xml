@@ -10,11 +10,15 @@
         android:label="CameraFragment" >
         <action
             android:id="@+id/action_cameraFragment_to_galleryFragment"
-            app:destination="@id/galleryFragment">
-        <argument
-            android:name="adapter"
-            app:argType=""
-            android:defaultValue="1" />
+            app:destination="@id/galleryFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right">
+            <argument
+                android:name="adapter"
+                android:defaultValue="1"
+                app:argType="" />
         </action>
     </fragment>
     <fragment
@@ -23,7 +27,11 @@
         android:label="GalleryFragment" >
         <action
             android:id="@+id/action_galleryFragment_to_galleryPhotoFragment"
-            app:destination="@id/galleryPhotoFragment" />
+            app:destination="@id/galleryPhotoFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"/>
     </fragment>
     <fragment
         android:id="@+id/galleryPhotoFragment"

@@ -167,11 +167,12 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
 
         //Load setup
         savePauseFrame = viewModel.savePauseFrame
-        focus.value = viewModel.focus
+        focus.value = false
         pause = viewModel.pause
         preview = viewModel.preview
         cameraInfo.declineAcceptVisibility.set(viewModel.declineAcceptVisibility)
         cameraInfo.photoVisibility.set(viewModel.photoVisibility)
+        cameraBinding.sizeView.text = viewModel.sizeText
 
         cameraBinding.camera = cameraInfo
         return cameraBinding.root
@@ -283,41 +284,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         codedBuff = codedBuff.slice(0..compreseBuffSize-1).toByteArray()
         coder.end()
         cameraBinding.sizeView.text = "${buffSize/1000.0}KB -> ${compreseBuffSize/1000.0}KB"
-
-    }
-
-    fun unpackPhoto(){
-        try {
-            //Load bytes from file
-            val dataReader = FileInputStream(
-                File(
-                    getActivity()?.getExternalFilesDir("BinaryStorage") ?: null,
-                    "output.dat"
-                )
-            )
-            val scanner = DataInputStream(dataReader)
-            val height = scanner.readShort().toDouble()
-            val width = scanner.readShort().toDouble()
-            val prevSize = Size(height, width)
-            val dada = DataInputStream(dataReader)
-            val compBuffSize = dada.readInt()
-            val bSize = dada.readInt()
-            var res = ByteArray(compBuffSize)
-            dataReader.read(res)
-
-            //Unpack bytes
-            decoder = Inflater()
-            decoder.setInput(res, 0, compBuffSize)
-            val result = ByteArray(bSize)
-            decoder.inflate(result)
-            decoder.end()
-
-            var prevMat = Mat(prevSize, CvType.CV_8UC1)
-            prevMat.put(0, 0, result)
-            photoMat = prevMat
-        }catch (e:FileNotFoundException){
-
-        }
+        cameraBinding.sizeView.text = "${buffSize/1000.0}KB -> ${compreseBuffSize/1000.0}KB"
 
     }
 

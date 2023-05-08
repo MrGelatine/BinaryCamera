@@ -13,4 +13,5 @@ class CameraViewModel: ViewModel() {
     var pause:Boolean= false
     var preview:Boolean = false
     var savePauseFrame: Mat = Mat()
+    var sizeText:String = ""
 }
