@@ -12,7 +12,7 @@ class CameraData(val cameraFragment:CameraFragment): BaseObservable() {
     var photoVisibility = ObservableField(cameraFragment.viewModel.photoVisibility)
     var declineAcceptVisibility = ObservableField(cameraFragment.viewModel.declineAcceptVisibility)
     var fileSizeVisibility = ObservableField(cameraFragment.viewModel.declineAcceptVisibility)
-    var fileSize= ObservableField<String>()
+    var fileSize= ObservableField(cameraFragment.viewModel.sizeText)
 
 
 
@@ -38,13 +38,16 @@ class CameraData(val cameraFragment:CameraFragment): BaseObservable() {
         photoVisibility.set(View.VISIBLE)
         declineAcceptVisibility.set(View.GONE)
         cameraFragment.preview = false
+        cameraFragment.cameraBinding.sizeView.text = ""
 
         cameraFragment.viewModel.pause = false
+        cameraFragment.viewModel.focus = false
         cameraFragment.viewModel.preview = false
         cameraFragment.viewModel.photoVisibility = View.VISIBLE
         cameraFragment.viewModel.declineAcceptVisibility = View.GONE
+        cameraFragment.viewModel.sizeText = ""
 
-        cameraFragment.cameraBinding.sizeView.text = ""
+
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -55,5 +58,12 @@ class CameraData(val cameraFragment:CameraFragment): BaseObservable() {
         declineAcceptVisibility.set(View.GONE)
         cameraFragment.preview = false
         cameraFragment.cameraBinding.sizeView.text = ""
+
+        cameraFragment.viewModel.pause = false
+        cameraFragment.viewModel.focus = false
+        cameraFragment.viewModel.preview = false
+        cameraFragment.viewModel.photoVisibility = View.VISIBLE
+        cameraFragment.viewModel.declineAcceptVisibility = View.GONE
+        cameraFragment.viewModel.sizeText = ""
     }
 }
