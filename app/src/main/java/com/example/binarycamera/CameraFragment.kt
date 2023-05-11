@@ -21,6 +21,7 @@ import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -39,7 +40,6 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.File
 import java.io.FileInputStream
-import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.time.Instant
 import java.time.ZoneId
@@ -151,7 +151,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         cameraBinding.galleryButton.setOnClickListener {
             val viewModel: GalleryViewModel by activityViewModels()
             viewModel.context = activity
-            viewModel.refresh(context?.getExternalFilesDir("BinaryStorage").toString())
+            viewModel.refresh(context)
             findNavController().navigate(R.id.action_cameraFragment_to_galleryFragment)
         }
 
@@ -255,8 +255,16 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
             val date = Instant.now()
             name = DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm:ss")
                 .withZone(ZoneId.systemDefault()).format(date).replace(':','_')
-
-            val dataWriter = FileOutputStream(File(getActivity()?.getExternalFilesDir("BinaryStorage")
+            var path = getActivity()?.getExternalFilesDir("BinaryStorage")
+            var res = true
+            var devices = getStorageDirectories(context)!!
+            if(devices.size> 1){
+                path = File(devices!![1] + "/Android/data/com.example.binarycamera/files/BinaryStorage/")
+                if(!path.isDirectory){
+                    res = path.mkdir()
+                }
+            }
+            val dataWriter = FileOutputStream(File(path
                 ?: null, "${name}.dat"))
             val wrap =  DataOutputStream(dataWriter)
             wrap.writeShort(curFrame.size().width.toInt())
@@ -296,7 +304,11 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         fun shortMsg(context: Context, s: String) =
             Toast.makeText(context, s, Toast.LENGTH_SHORT).show()
         fun unpack(context:Activity, fName:String): Bitmap{
-            val dataReader = FileInputStream(File(context.getExternalFilesDir("BinaryStorage") ?: null, fName))
+            var path = File(context.getExternalFilesDir("BinaryStorage") ?: null, fName)
+            if(!path.exists()){
+                path = File(getStorageDirectories(context)!![1] + "/Android/data/com.example.binarycamera/files/BinaryStorage/" + fName)
+            }
+            val dataReader = FileInputStream(path)
             val scanner = DataInputStream(dataReader)
 
             val height = scanner.readShort().toDouble()
@@ -328,6 +340,45 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
             Utils.matToBitmap(prevMat, bm)
             bm = Bitmap.createScaledBitmap(bm,w,h,true)
             return bm
+        }
+        fun isExternalStorageAvailable(): Boolean {
+            val state = Environment.getExternalStorageState()
+            var mExternalStorageAvailable = false
+            var mExternalStorageWriteable = false
+            if (Environment.MEDIA_MOUNTED == state) {
+                // We can read and write the media
+                mExternalStorageWriteable = true
+                mExternalStorageAvailable = mExternalStorageWriteable
+            } else if (Environment.MEDIA_MOUNTED_READ_ONLY == state) {
+                // We can only read the media
+                mExternalStorageAvailable = true
+                mExternalStorageWriteable = false
+            } else {
+                // Something else is wrong. It may be one of many other states, but
+                // all we need
+                // to know is we can neither read nor write
+                mExternalStorageWriteable = false
+                mExternalStorageAvailable = mExternalStorageWriteable
+            }
+            return (mExternalStorageAvailable && mExternalStorageWriteable)
+        }
+        fun getStorageDirectories(pContext: Context?): Array<String>? {
+            // Final set of paths
+            val rv: MutableSet<String> = HashSet()
+
+            //Get primary & secondary external device storage (internal storage & micro SDCARD slot...)
+            val listExternalDirs = ContextCompat.getExternalFilesDirs(pContext!!, null)
+            for (i in listExternalDirs.indices) {
+                if (listExternalDirs[i] != null) {
+                    val path = listExternalDirs[i]!!.absolutePath
+                    val indexMountRoot = path.indexOf("/Android/data/")
+                    if (indexMountRoot >= 0 && indexMountRoot <= path.length) {
+                        //Get the root path for the external directory
+                        rv.add(path.substring(0, indexMountRoot))
+                    }
+                }
+            }
+            return rv.toTypedArray()
         }
 
         // messages:
