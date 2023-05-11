@@ -2,17 +2,19 @@ package com.example.binarycamera
 
 import android.os.Build
 import android.os.Bundle
-import androidx.fragment.app.Fragment
+import android.os.Environment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.addCallback
 import androidx.annotation.RequiresApi
 import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.binarycamera.databinding.FragmentGalleryBinding
 import java.io.File
+
 
 class GalleryFragment() : Fragment() {
 
@@ -57,8 +59,9 @@ class GalleryFragment() : Fragment() {
                 }
             }
             viewModel.showChecked.value = View.GONE
-            viewModel.refresh(activity?.getExternalFilesDir("BinaryStorage").toString())
+            viewModel.refresh(activity)
         }
         return binding.root
     }
+
 }
