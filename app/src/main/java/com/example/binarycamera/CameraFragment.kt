@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.hardware.Camera
 import android.hardware.camera2.CameraCharacteristics
+import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -42,6 +43,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.zip.Deflater
@@ -52,6 +54,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
     var focus: MutableLiveData<Boolean> = MutableLiveData()
 
     lateinit var imageMat: Mat
+    var mInfoTextView: TextView? = null
     lateinit var cameraBinding : FragmentCameraBinding
     private lateinit var cameraInfo: CameraData
     private lateinit var viewFinder:JavaCameraView
@@ -151,7 +154,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         cameraBinding.galleryButton.setOnClickListener {
             val viewModel: GalleryViewModel by activityViewModels()
             viewModel.context = activity
-            viewModel.refresh(context)
+            //viewModel.refresh()
             findNavController().navigate(R.id.action_cameraFragment_to_galleryFragment)
         }
 
@@ -175,6 +178,13 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         cameraBinding.sizeView.text = viewModel.sizeText
 
         cameraBinding.camera = cameraInfo
+
+        val galeryViewModel: GalleryViewModel by activityViewModels()
+        galeryViewModel.context = activity
+        mInfoTextView = cameraBinding.sizeView
+        galeryViewModel.refresh()
+        val binTask = LoadBinaryTask()
+        binTask.execute(galeryViewModel)
         return cameraBinding.root
     }
 
@@ -251,6 +261,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
     @RequiresApi(Build.VERSION_CODES.O)
     fun saveToFile(){
         try {
+            val galeryViewModel: GalleryViewModel by activityViewModels()
 
             val date = Instant.now()
             name = DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm:ss")
@@ -273,6 +284,13 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
             wrap.writeInt(buffSize)
             dataWriter.write(codedBuff)
             dataWriter.close()
+            var bm = Bitmap.createBitmap(curFrame.cols(), curFrame.rows(), Bitmap.Config.ARGB_8888)
+            Utils.matToBitmap(curFrame, bm)
+            galeryViewModel.data.value?.add(TileData(
+                name,
+                LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant(),
+                galeryViewModel.adapter,galeryViewModel,bm, requireContext()
+            ))
 
 
         } catch (e: Exception) {
@@ -295,7 +313,24 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         cameraBinding.sizeView.text = "${buffSize/1000.0}KB -> ${compreseBuffSize/1000.0}KB"
 
     }
-
+    class LoadBinaryTask : AsyncTask<GalleryViewModel, TileData, GalleryViewModel>() {
+        @RequiresApi(Build.VERSION_CODES.O)
+        override fun doInBackground(vararg tiles: GalleryViewModel): GalleryViewModel {
+            for(tile in tiles[0].data.value!!)
+            {
+                tile.img = unpack(tile.context as Activity,tile.name)
+                publishProgress(tile);
+            }
+            return tiles[0]
+        }
+        @RequiresApi(Build.VERSION_CODES.O)
+        override fun onProgressUpdate(vararg values: TileData) {
+            if(values[0].vm.galery != null){
+                values[0].vm.galery?.adapter = values[0].adapter
+            }
+            values[0].adapter.notifyItemChanged(values[0].vm.data.value?.indexOf(values[0])!!)
+        }
+    }
     companion object {
         val TAG = "MYLOG " + MainActivity::class.java.simpleName
         fun lgd(s: String) = Log.d(TAG, s)
@@ -387,4 +422,5 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         const val PERMISSION_NOT_GRANTED = "Permissions not granted by the user."
 
     }
+
 }

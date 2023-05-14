@@ -28,13 +28,14 @@ class GalleryFragment() : Fragment() {
         val binding:FragmentGalleryBinding = DataBindingUtil.inflate(
             inflater, R.layout.fragment_gallery, container, false);
         val viewModel: GalleryViewModel by activityViewModels()
-
+        viewModel.galery = binding
+        viewModel.context = activity
+        var data = viewModel.data.value!!
+        viewModel.adapter.notifyDataSetChanged()
+        binding.adapter = viewModel.adapter
         viewModel.data.observe(viewLifecycleOwner) {
             viewModel.adapter.refresh(it)
         }
-        viewModel.context = activity
-        binding.adapter = viewModel.adapter
-
         requireActivity().onBackPressedDispatcher.addCallback(this) {
             if(viewModel.showChecked.value == View.VISIBLE){
                 viewModel.showChecked.value = View.GONE
@@ -59,8 +60,9 @@ class GalleryFragment() : Fragment() {
                 }
             }
             viewModel.showChecked.value = View.GONE
-            viewModel.refresh(activity)
+            viewModel.refresh()
         }
+
         return binding.root
     }
 
