@@ -182,9 +182,12 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         val galeryViewModel: GalleryViewModel by activityViewModels()
         galeryViewModel.context = activity
         mInfoTextView = cameraBinding.sizeView
-        galeryViewModel.refresh()
-        val binTask = LoadBinaryTask()
-        binTask.execute(galeryViewModel)
+        if(galeryViewModel.data.value == null){
+            galeryViewModel.refresh()
+            val binTask = LoadBinaryTask()
+            binTask.execute(galeryViewModel)
+        }
+
         return cameraBinding.root
     }
 
