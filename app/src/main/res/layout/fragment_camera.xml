@@ -118,8 +118,5 @@
             app:layout_constraintStart_toEndOf="@+id/resolutionSpinner"
             app:layout_constraintTop_toTopOf="parent"
             android:gravity="center"/>
-
-
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

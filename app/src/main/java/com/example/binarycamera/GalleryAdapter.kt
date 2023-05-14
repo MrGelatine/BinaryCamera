@@ -23,12 +23,11 @@ class GalleryAdapter(val vModel: GalleryViewModel): RecyclerView.Adapter<Gallery
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: GalleryViewHolder, position: Int) {
-        holder.bind(recyclerRows[getItemCount()-position-1],vModel.context!!);
+        holder.bind(recyclerRows[itemCount - position-1],vModel.context!!);
     }
     @RequiresApi(Build.VERSION_CODES.O)
     fun refresh(tiles:MutableList<TileData>) {
         recyclerRows = tiles
-        notifyDataSetChanged()
     }
 
     override fun getItemCount(): Int {
@@ -44,7 +43,7 @@ class GalleryViewHolder(var tilePreviewBinding: TilePreviewBinding) :
 
     fun bind(obj: Any?, context:Activity) {
         tilePreviewBinding.setVariable(BR.model, obj)
-        var tile = CameraFragment.unpack(context,(obj as TileData).name)
+        var tile = (obj as TileData).img
         tilePreviewBinding.photoPreview.setImageBitmap(Bitmap.createScaledBitmap(tile,tile.width,tile.width,false))
         tilePreviewBinding.photoPreview.rotation = 90f
         tilePreviewBinding.executePendingBindings()

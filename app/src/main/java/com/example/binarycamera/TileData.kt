@@ -1,5 +1,7 @@
 package com.example.binarycamera
 
+import android.content.Context
+import android.graphics.Bitmap
 import android.os.Build
 import android.view.View
 import androidx.annotation.RequiresApi
@@ -10,7 +12,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import java.time.Instant
 
-data class TileData(var name:String = "", var date: Instant? = null, var adapter:GalleryAdapter,var vm:GalleryViewModel) {
+data class TileData(var name:String = "", var date: Instant? = null, var adapter:GalleryAdapter, var vm:GalleryViewModel, var img:Bitmap,
+                    val context:Context) {
     var checked:ObservableBoolean = ObservableBoolean(false)
     @RequiresApi(Build.VERSION_CODES.O)
     var checkedVisibility:ObservableInt = ObservableInt(vm.showChecked.value!!)
