@@ -5,7 +5,6 @@ import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.databinding.BaseObservable
 import androidx.databinding.ObservableField
-import java.math.RoundingMode
 
 
 class CameraData(val cameraFragment:CameraFragment): BaseObservable() {

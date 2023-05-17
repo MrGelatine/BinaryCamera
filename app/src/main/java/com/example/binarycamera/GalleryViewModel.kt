@@ -1,8 +1,6 @@
 package com.example.binarycamera
 
 import android.app.Activity
-import android.content.Context
-import android.os.AsyncTask
 import android.os.Build
 import android.view.View
 import androidx.annotation.RequiresApi
