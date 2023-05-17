@@ -1,29 +1,29 @@
 -- Merging decision tree log ---
 manifest
-ADDED from D:\GitHub\BinaryCamera\openCV343\java\AndroidManifest.xml:2:1-7:12
-INJECTED from D:\GitHub\BinaryCamera\openCV343\java\AndroidManifest.xml:2:1-7:12
-INJECTED from D:\GitHub\BinaryCamera\openCV343\java\AndroidManifest.xml:2:1-7:12
+ADDED from C:\AndroidStudioProjects\Project\BinaryCamera\openCV343\java\AndroidManifest.xml:2:1-7:12
+INJECTED from C:\AndroidStudioProjects\Project\BinaryCamera\openCV343\java\AndroidManifest.xml:2:1-7:12
+INJECTED from C:\AndroidStudioProjects\Project\BinaryCamera\openCV343\java\AndroidManifest.xml:2:1-7:12
 	package
-		ADDED from D:\GitHub\BinaryCamera\openCV343\java\AndroidManifest.xml:3:7-27
-		INJECTED from D:\GitHub\BinaryCamera\openCV343\java\AndroidManifest.xml
-		INJECTED from D:\GitHub\BinaryCamera\openCV343\java\AndroidManifest.xml
+		ADDED from C:\AndroidStudioProjects\Project\BinaryCamera\openCV343\java\AndroidManifest.xml:3:7-27
+		INJECTED from C:\AndroidStudioProjects\Project\BinaryCamera\openCV343\java\AndroidManifest.xml
+		INJECTED from C:\AndroidStudioProjects\Project\BinaryCamera\openCV343\java\AndroidManifest.xml
 	android:versionName
-		ADDED from D:\GitHub\BinaryCamera\openCV343\java\AndroidManifest.xml:5:7-34
+		ADDED from C:\AndroidStudioProjects\Project\BinaryCamera\openCV343\java\AndroidManifest.xml:5:7-34
 	xmlns:android
-		ADDED from D:\GitHub\BinaryCamera\openCV343\java\AndroidManifest.xml:2:11-69
+		ADDED from C:\AndroidStudioProjects\Project\BinaryCamera\openCV343\java\AndroidManifest.xml:2:11-69
 	android:versionCode
-		ADDED from D:\GitHub\BinaryCamera\openCV343\java\AndroidManifest.xml:4:7-33
+		ADDED from C:\AndroidStudioProjects\Project\BinaryCamera\openCV343\java\AndroidManifest.xml:4:7-33
 uses-sdk
-INJECTED from D:\GitHub\BinaryCamera\openCV343\java\AndroidManifest.xml reason: use-sdk injection requested
-INJECTED from D:\GitHub\BinaryCamera\openCV343\java\AndroidManifest.xml
-INJECTED from D:\GitHub\BinaryCamera\openCV343\java\AndroidManifest.xml
-INJECTED from D:\GitHub\BinaryCamera\openCV343\java\AndroidManifest.xml
-INJECTED from D:\GitHub\BinaryCamera\openCV343\java\AndroidManifest.xml
+INJECTED from C:\AndroidStudioProjects\Project\BinaryCamera\openCV343\java\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from C:\AndroidStudioProjects\Project\BinaryCamera\openCV343\java\AndroidManifest.xml
+INJECTED from C:\AndroidStudioProjects\Project\BinaryCamera\openCV343\java\AndroidManifest.xml
+INJECTED from C:\AndroidStudioProjects\Project\BinaryCamera\openCV343\java\AndroidManifest.xml
+INJECTED from C:\AndroidStudioProjects\Project\BinaryCamera\openCV343\java\AndroidManifest.xml
 	android:targetSdkVersion
-		INJECTED from D:\GitHub\BinaryCamera\openCV343\java\AndroidManifest.xml
-		ADDED from D:\GitHub\BinaryCamera\openCV343\java\AndroidManifest.xml
-		INJECTED from D:\GitHub\BinaryCamera\openCV343\java\AndroidManifest.xml
+		INJECTED from C:\AndroidStudioProjects\Project\BinaryCamera\openCV343\java\AndroidManifest.xml
+		ADDED from C:\AndroidStudioProjects\Project\BinaryCamera\openCV343\java\AndroidManifest.xml
+		INJECTED from C:\AndroidStudioProjects\Project\BinaryCamera\openCV343\java\AndroidManifest.xml
 	android:minSdkVersion
-		INJECTED from D:\GitHub\BinaryCamera\openCV343\java\AndroidManifest.xml
-		ADDED from D:\GitHub\BinaryCamera\openCV343\java\AndroidManifest.xml
-		INJECTED from D:\GitHub\BinaryCamera\openCV343\java\AndroidManifest.xml
+		INJECTED from C:\AndroidStudioProjects\Project\BinaryCamera\openCV343\java\AndroidManifest.xml
+		ADDED from C:\AndroidStudioProjects\Project\BinaryCamera\openCV343\java\AndroidManifest.xml
+		INJECTED from C:\AndroidStudioProjects\Project\BinaryCamera\openCV343\java\AndroidManifest.xml
