@@ -6,9 +6,7 @@ import android.os.Build
 import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.databinding.ObservableBoolean
-import androidx.databinding.ObservableField
 import androidx.databinding.ObservableInt
-import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import java.time.Instant
 
