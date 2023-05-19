@@ -28,6 +28,7 @@ class GalleryAdapter(val vModel: GalleryViewModel): RecyclerView.Adapter<Gallery
     @RequiresApi(Build.VERSION_CODES.O)
     fun refresh(tiles:MutableList<TileData>) {
         recyclerRows = tiles
+        notifyDataSetChanged()
     }
 
     override fun getItemCount(): Int {
@@ -35,7 +36,7 @@ class GalleryAdapter(val vModel: GalleryViewModel): RecyclerView.Adapter<Gallery
     }
     @RequiresApi(Build.VERSION_CODES.O)
     fun showPhoto(tile:TileData){
-        vModel.curPhoto.value = tile.name
+        vModel.curPhoto.value = tile
         }
 }
 class GalleryViewHolder(var tilePreviewBinding: TilePreviewBinding) :

@@ -53,9 +53,11 @@ class GalleryFragment() : Fragment() {
 
         }
         binding.deleteButton.setOnClickListener{
-            for(elem in viewModel.data.value!!){
+            for(elem in viewModel.data.value!!.toList()){
                 if(elem.checked.get()){
-                    File(activity?.getExternalFilesDir("BinaryStorage"), elem.name).delete()
+                    val ind = viewModel.data.value!!.indexOf(elem)
+                    viewModel.data.value!!.removeAt(ind)
+                    File(elem.path, elem.name).delete()
                 }
             }
             viewModel.showChecked.value = View.GONE
