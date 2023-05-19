@@ -290,10 +290,11 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
             var bm = Bitmap.createBitmap(curFrame.cols(), curFrame.rows(), Bitmap.Config.ARGB_8888)
             Utils.matToBitmap(curFrame, bm)
             galeryViewModel.data.value?.add(TileData(
-                name,
+                name, path!!.absolutePath,
                 LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant(),
                 galeryViewModel.adapter,galeryViewModel,bm, requireContext()
             ))
+            galeryViewModel.refresh()
 
 
         } catch (e: Exception) {
@@ -321,7 +322,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
         override fun doInBackground(vararg tiles: GalleryViewModel): GalleryViewModel {
             for(tile in tiles[0].data.value!!)
             {
-                tile.img = unpack(tile.context as Activity,tile.name)
+                tile.img = unpack(tile.context as Activity,tile.name,tile.path)
                 publishProgress(tile);
             }
             return tiles[0]
@@ -341,8 +342,8 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
 
         fun shortMsg(context: Context, s: String) =
             Toast.makeText(context, s, Toast.LENGTH_SHORT).show()
-        fun unpack(context:Activity, fName:String): Bitmap{
-            var path = File(context.getExternalFilesDir("BinaryStorage") ?: null, fName)
+        fun unpack(context:Activity, fName:String, fPath:String): Bitmap{
+            var path = File(fPath, fName)
             if(!path.exists()){
                 path = File(getStorageDirectories(context)!![1] + "/Android/data/com.example.binarycamera/files/BinaryStorage/" + fName)
             }
