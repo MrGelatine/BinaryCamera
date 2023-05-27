@@ -290,7 +290,7 @@ class CameraFragment() : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 
             var bm = Bitmap.createBitmap(curFrame.cols(), curFrame.rows(), Bitmap.Config.ARGB_8888)
             Utils.matToBitmap(curFrame, bm)
             galeryViewModel.data.value?.add(TileData(
-                name, path!!.absolutePath,
+                "${name}.dat", path!!.absolutePath,
                 LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant(),
                 galeryViewModel.adapter,galeryViewModel,bm, requireContext()
             ))
